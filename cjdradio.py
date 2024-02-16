@@ -186,18 +186,15 @@ def banner_daemon(g):
 					try: 
 						lock = threading.Lock()
 						lock.acquire();
-						try:
+						try: 
+							
 							b.get_object("cbsinglestation").remove_all()
+							for i in g.peers: 
+								if not i in g.bannedStations:
+									b.get_object("cbsinglestation").append_text(i)
+							
 						finally: 
 							lock.release()
-									
-							for i in g.peers:
-								lock = threading.Lock()
-								lock.acquire();
-								try:
-									b.get_object("cbsinglestation").append_text(i)
-								finally: 
-									lock.release()
 						lock = threading.Lock()
 						lock.acquire();
 						try: 
@@ -628,6 +625,8 @@ class Handler:
 			self.onRadioShares(args)
 	def onRadioSingle(self, *args): 
 		if g.radio is None or (g.radio is not None and not g.radio.player.is_playing()):
+			while g.cbsinglestationlock:
+				sleep(0.5)
 			ir = internetRadio(g, b.get_object("nowplaying"), False, b.get_object("cbsinglestation").get_active_text())
 			g.radio = ir
 			ir.play()
@@ -731,9 +730,11 @@ class Handler:
 				g.radio.stop()
 				g.radio.play()
 			else:
+				g.radio.stop()
 				if not g.radio.threadPlay is None:
 					print ("radio is buffering")
-					g.radio.threadPlay.join(1)
+					g.radio.bufferingLock = False
+					g.radio.threadPlay.join(0)
 					g.radio.play()
 					
 				
@@ -745,6 +746,12 @@ class Handler:
 				print("radio is playing")
 				g.radio.stop()
 				b.get_object("nowplaying").set_text("(nothing currently)")
+			else:
+				if not g.radio.threadPlay is None:
+					print ("radio is buffering")
+					g.radio.threadPlay.join(1)
+				g.radio.stop()
+
 	def onBanned(self, *args):
 		g.bannedStations=[]
 		g.get_builder().get_object("banned").set_label("Clear banned stations")
@@ -981,6 +988,8 @@ class internetRadio():
 	
 	threadPlay = None
 	
+	bufferingLock = True
+	
 	artist = ''
 	
 	def __init__ (self, gateway, display_text_setter, isMultiPeers = True, ip = '', ):
@@ -1025,10 +1034,20 @@ class internetRadio():
 							peer = tmpPeer
 							self.ip = tmpPeer
 					except: 
+						while g.cbsinglestationlock:
+							sleep (0.5)
+
+
 						self.g.bannedStations.append(tmpPeer)
+
+
+						while g.cbsinglestationlock:
+							sleep (0.5)
 						self.g.get_builder().get_object("cbsinglestation").remove_all()
 						for i in self.g.peers: 
 							if i not in self.g.bannedStations:
+								while g.cbsinglestationlock:
+									sleep (0.5)
 								self.g.get_builder().get_object("cbsinglestation").append_text(i)
 								self.g.get_builder().get_object("cbsinglestation").set_active(0)
 		else: 
@@ -1093,26 +1112,30 @@ class internetRadio():
 				valid=True
 			
 				r = requests.get("http://["+self.ip+"]:55227/mp3?"+urllib.parse.quote(self.track, safe=''), timeout = 8, stream = True)
+				self.bufferingLock = True
 				try:
 					for char in r.iter_content(1024):
 						lock = threading.Lock()
 				
 						lock.acquire()
 						try: 
-							char_array+=char
+							if self.bufferingLock:
+								char_array+=char
+							else:
+								raise ValueError("Skip")
 						finally: 
 							lock.release()
 						if len(char_array)>32000000:
 							char_array=b""
 							valid=False
-							print("MP3 file greater than 32000 kilibytes received, aborting")
+							print("MP3 file greater than 32000 kilibytes, or Skip signal, received, aborting")
 							break
 					print ("Finished download")
 				except:
 					char_arry=b""
 			
 			
-				if len(char_array)>0: 
+				if len(char_array)>0 and self.bufferingLock: 
 					home = expanduser("~")
 					datadir=os.path.join(home, ".cjdradio")
 
