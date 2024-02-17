@@ -1344,13 +1344,13 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 				pass
 			self.wfile.write("\n".join(self.gateway.get_peers()).encode("utf-8"))
 		if path=="/id":
-			#import threading
-			#lock = threading.Lock()
-			#lock.acquire()
-			#try: 
-			self.wfile.write(self.gateway.ID.encode("utf-8"))
-			#finally: 
-			#	lock.release()
+			import threading
+			lock = threading.Lock()
+				lock.acquire()
+			try: 
+				self.wfile.write(self.gateway.ID.encode("utf-8"))
+			finally: 
+				lock.release()
 		if path=="/random-mp3":
 			if not self.client_address[0] in self.gateway.peers:
 				try:
