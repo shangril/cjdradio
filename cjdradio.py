@@ -411,7 +411,8 @@ class Handler:
 		return b
 		
 	def on_cbsinglestation_changed(self, *args):
-		b.get_object("cjdradio_main_window").queue_draw()
+		return
+		#b.get_object("cjdradio_main_window").queue_draw()
 		
 	def onAddAccess(self, *args): 
 		home = expanduser("~")
@@ -1470,7 +1471,7 @@ if __name__ == "__main__":
 
 	if len(sys.argv)==1:
 		UIThread = Thread(target = Gtk.main)
-		
+		UIThread.daemon = True
 		UIThread.start()
 		
 			
@@ -1498,7 +1499,7 @@ if __name__ == "__main__":
 	if len(sys.argv)==1:
 
 		WebserverThread.daemon = True
-		flacWebserverThread.daemon = True
+		flacWebserverThread.daemon = False
 
 
 	
