@@ -182,10 +182,12 @@ def banner_daemon(g):
 					lock.release()
 				if len(sys.argv) == 1:
 					#GUI mode, update gui
+					while g.cbsinglestationlock:
+						sleep(0.5)
 					g.cbsinglestationlock = True
 					try: 
-						lock = threading.Lock()
-						lock.acquire();
+						#lock = threading.Lock()
+						#lock.acquire();
 						try: 
 							
 							b.get_object("cbsinglestation").remove_all()
@@ -193,15 +195,17 @@ def banner_daemon(g):
 								if not i in g.bannedStations:
 									b.get_object("cbsinglestation").append_text(i)
 							
-						finally: 
-							lock.release()
-						lock = threading.Lock()
-						lock.acquire();
+						finally:
+							print("Banner daemon processed") 
+							#lock.release()
+						#lock = threading.Lock()
+						#lock.acquire();
 						try: 
 							b.get_object("cbsinglestation").set_active(0)
 							b.get_object("discover_button").set_label("Discover new stations peers ("+str(len(g.peers))+")")
 						finally: 
-							lock.release()
+							#lock.release()
+							print("Banner daemon updated Discover New Station Peers")
 					finally: 
 						g.cbsinglestationlock = False
 			except: 
@@ -405,6 +409,10 @@ class Handler:
 		
 	def getBuilder(self):
 		return b
+		
+	def on_cbsinglestation_changed(self, *args):
+		b.get_object("cjdradio_main_window").queue_draw()
+		
 	def onAddAccess(self, *args): 
 		home = expanduser("~")
 		basedir=os.path.join(home, ".cjdradio")
@@ -1019,7 +1027,7 @@ class internetRadio():
 
 	
 	
-		if (self.isMultiPeers): 
+		if self.isMultiPeers: 
 			self.ip = ''
 			while self.ip == '':
 				peer = ''
@@ -1037,9 +1045,11 @@ class internetRadio():
 						while g.cbsinglestationlock:
 							sleep (0.5)
 
-
-						self.g.bannedStations.append(tmpPeer)
-
+						g.cbsinglestationlock = True
+						try: 
+							self.g.bannedStations.append(tmpPeer)
+						finally: 
+							g.cbsinglestationlock = False
 
 						while g.cbsinglestationlock:
 							sleep (0.5)
@@ -1048,22 +1058,28 @@ class internetRadio():
 							if i not in self.g.bannedStations:
 								while g.cbsinglestationlock:
 									sleep (0.5)
-								self.g.get_builder().get_object("cbsinglestation").append_text(i)
-								self.g.get_builder().get_object("cbsinglestation").set_active(0)
+								
+								g.cbsinglestationlock = True
+								try: 
+									self.g.get_builder().get_object("cbsinglestation").append_text(i)
+									self.g.get_builder().get_object("cbsinglestation").set_active(0)
+								finally: 
+									g.cbsinglestationlock = False	
 		else: 
 			try: 
 				pong = ''
-				pong = OcsadURLRetriever.retrieveURL("http://["+self.ip+"]:55227/ping", max_length = 120000, reqtimeout = 8)
+				pong = OcsadURLRetriever.retrieveURL("http://["+self.ip+"]:55227/ping", reqtimeout = 8)
+				#print (pong)
 				if pong!='pong':
 					raise ValueError("no replying peer on song request")
 			except: 
-				lock = threading.Lock()
-				lock.acquire()
+				#lock = threading.Lock()
+				#lock.acquire()
 		
 				try: 
 					while g.cbsinglestationlock:
 						sleep (0.5)
-					self.g.bannedStations.append(ip)
+					self.g.bannedStations.append(self.ip)
 					self.g.get_builder().get_object("cbsinglestation").remove_all()
 					for i in self.g.peers: 
 						if i not in self.g.bannedStations:
@@ -1075,10 +1091,11 @@ class internetRadio():
 					while g.cbsinglestationlock:
 						sleep (0.5)
 					self.g.get_builder().get_object("cbsinglestation").set_active(0)
-					lock.release()
+					#lock.release()
 					return
-				finally: 
-					lock.release()
+				finally:
+					print("Play detected a station to ban: "+self.ip) 
+					#lock.release()
 			
 			
 
