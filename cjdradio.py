@@ -1137,11 +1137,11 @@ class internetRadio():
 				
 						#lock.acquire()
 						try: 
-						if self.bufferingLock:
-							char_array+=char
-						else:
-							raise ValueError("Skip")
-						#
+							if self.bufferingLock:
+								char_array+=char
+							else:
+								raise ValueError("Skip")
+							#
 						finally: 
 							self.bufferingLock = False
 						if len(char_array)>32000000:
