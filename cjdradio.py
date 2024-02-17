@@ -1472,7 +1472,7 @@ if __name__ == "__main__":
 
 	if len(sys.argv)==1:
 		UIThread = Thread(target = Gtk.main)
-		UIThread.daemon = True
+		#UIThread.daemon = True
 		UIThread.start()
 		
 			
