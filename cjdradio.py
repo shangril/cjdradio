@@ -1136,13 +1136,14 @@ class internetRadio():
 						#lock = threading.Lock()
 				
 						#lock.acquire()
-						#try: 
+						try: 
 						if self.bufferingLock:
 							char_array+=char
 						else:
 							raise ValueError("Skip")
-						#finally: 
-							#lock.release()
+						#
+						finally: 
+							self.bufferingLock = False
 						if len(char_array)>32000000:
 							char_array=b""
 							valid=False
