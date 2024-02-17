@@ -1154,7 +1154,7 @@ class internetRadio():
 					char_arry=b""
 			
 			
-				if len(char_array)>0 and self.bufferingLock: 
+				if len(char_array)>0: 
 					home = expanduser("~")
 					datadir=os.path.join(home, ".cjdradio")
 
@@ -1162,7 +1162,7 @@ class internetRadio():
 					with open(os.path.join(datadir,'temp.mp3'), 'wb') as myfile:
 						myfile.write(char_array)
 						myfile.close()
-					if not self.player is None and self.player.is_playing():
+					if self.player not is None and self.player.is_playing():
 						self.player.stop() 
 					
 					self.player = vlc.MediaPlayer(os.path.join(datadir,'temp.mp3'), 'rb')
