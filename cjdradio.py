@@ -1137,20 +1137,16 @@ class internetRadio():
 				
 						lock.acquire()
 						try: 
-							if self.bufferingLock:
-								char_array+=char
-							else:
-								raise ValueError("Skip")
-
-							#
-						finally: 
-							lock.release()
-							self.bufferingLock = False
+							char_array+=char
 							if len(char_array)>32000000:
 								char_array=b""
 								valid=False
-								print("MP3 file greater than 32000 kilibytes, or Skip signal, received, aborting")
-								break
+								raise ValueError("MP3 file greater than 32000 kilibytes, or Skip signal, received, aborting")
+							
+						finally: 
+							lock.release()
+							self.bufferingLock = False
+							break
 
 					print ("Finished download")
 				except:
