@@ -1346,7 +1346,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 		if path=="/id":
 			import threading
 			lock = threading.Lock()
-				lock.acquire()
+			lock.acquire()
 			try: 
 				self.wfile.write(self.gateway.ID.encode("utf-8"))
 			finally: 
