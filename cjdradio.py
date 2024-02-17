@@ -47,13 +47,13 @@ import socket
 def indexing_daemon(g): 
 	while True: 
 		if os.path.isdir(basedir):
-			import threading
-			lock = threading.Lock()
-			lock.acquire()
-			try: 
-				shareddir = g.shared_dir
-			finally:
-				lock.release()
+			#import threading
+			#lock = threading.Lock()
+			#lock.acquire()
+			#try: 
+			shareddir = g.shared_dir
+			#finally:
+			#	lock.release()
 			if os.path.isdir(shareddir):
 				datadir = os.path.join(basedir, "MetadataShares")
 				if not os.path.isdir(datadir):
@@ -155,12 +155,12 @@ def banner_daemon(g):
 		#first off we re-register to the tracker in case it rebooted and forgot us in the meanwhile
 		if g.registered: #but only if we registered previously, because we are not traitorware and won't joint the network without prior consent
 
-			lock = threading.Lock()
-			lock.acquire();
-			try:
-				g.set_peers([])
-			finally: 
-				lock.release()
+			#lock = threading.Lock()
+			#lock.acquire();
+			#try:
+			g.set_peers([])
+			#finally: 
+			#	lock.release()
 			newpeers = []
 			
 			
@@ -174,12 +174,12 @@ def banner_daemon(g):
 				for p in newpeers:
 					if not p in g.peers: 
 						newnewpeers.append(p)
-				lock = threading.Lock()
-				lock.acquire();
-				try:
-					g.set_peers(g.peers+newnewpeers)
-				finally: 
-					lock.release()
+				#lock = threading.Lock()
+				#lock.acquire();
+				#try:
+				g.set_peers(g.peers+newnewpeers)
+				#finally: 
+				#	lock.release()
 				if len(sys.argv) == 1:
 					#GUI mode, update gui
 					while g.cbsinglestationlock:
@@ -222,12 +222,12 @@ def banner_daemon(g):
 						raise ValueError("no replying peer "+p+" on ping request")
 				except: 
 					newBanned.append(p)
-		lock = threading.Lock()		
-		lock.acquire()
-		try:
-			g.bannedStations = newBanned
-		finally: 
-			lock.release()
+		#lock = threading.Lock()		
+		#lock.acquire()
+		#try:
+		g.bannedStations = newBanned
+		#finally: 
+		#	lock.release()
 		
 class Cjdradio:
 	g = None;
@@ -782,53 +782,53 @@ class Handler:
 		
 		
 	def discoverPeers(self):
-		import threading
-		lock=threading.Lock()
-		lock.acquire()
+		#import threading
+		#lock=threading.Lock()
+		#lock.acquire()
+		
+		#try: 
+		g.set_processedPeers([])
+		g.set_peers([])
+		
+		newpeers = []
+		
+		
+		
+		g.peers.append(g.get_settings_ip6addr())
 		
 		try: 
-			g.set_processedPeers([])
-			g.set_peers([])
-			
-			newpeers = []
-			
-			
-			
-			g.peers.append(g.get_settings_ip6addr())
-			
-			try: 
-				newpeers = OcsadURLRetriever.retrieveURL("http://["+b.get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
-			except: 
-				dialog = Gtk.MessageDialog(
-					parent=b.get_object("cjdradio_main_window") ,
-					modal=True,
-					message_type=Gtk.MessageType.INFO,
-					buttons=Gtk.ButtonsType.OK,
-					text="Sorry!  "
-				)
-				dialog.format_secondary_text("This initial peer is currently offline")
-				dialog.run()
-				dialog.destroy()
-			
-			newnewpeers = []
-			for p in newpeers:
-				if not p in g.peers: 
-					newnewpeers.append(p)
-			
-			g.set_peers(g.peers+newnewpeers)
-			
+			newpeers = OcsadURLRetriever.retrieveURL("http://["+b.get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
+		except: 
 			dialog = Gtk.MessageDialog(
-					parent=b.get_object("cjdradio_main_window") ,
-					modal=True,
-					message_type=Gtk.MessageType.INFO,
-					buttons=Gtk.ButtonsType.OK,
-					text="Discover finished.  "
-				)
-			dialog.format_secondary_text(str(len(g.get_peers()))+" peers discovered")
+				parent=b.get_object("cjdradio_main_window") ,
+				modal=True,
+				message_type=Gtk.MessageType.INFO,
+				buttons=Gtk.ButtonsType.OK,
+				text="Sorry!  "
+			)
+			dialog.format_secondary_text("This initial peer is currently offline")
 			dialog.run()
 			dialog.destroy()
-		finally: 
-			lock.release();
+		
+		newnewpeers = []
+		for p in newpeers:
+			if not p in g.peers: 
+				newnewpeers.append(p)
+		
+		g.set_peers(g.peers+newnewpeers)
+		
+		dialog = Gtk.MessageDialog(
+				parent=b.get_object("cjdradio_main_window") ,
+				modal=True,
+				message_type=Gtk.MessageType.INFO,
+				buttons=Gtk.ButtonsType.OK,
+				text="Discover finished.  "
+			)
+		dialog.format_secondary_text(str(len(g.get_peers()))+" peers discovered")
+		dialog.run()
+		dialog.destroy()
+		#finally: 
+		#	lock.release();
 
 
 
@@ -1019,12 +1019,12 @@ class internetRadio():
 
 
 
-		lock = threading.Lock()
-		lock.acquire()
-		try: 
-			self.display.set_text("Selecting a station and buffering…")
-		except: 
-			lock.release()			
+		#lock = threading.Lock()
+		#lock.acquire()
+		#try: 
+		self.display.set_text("Selecting a station and buffering…")
+		#finally: 
+		#	lock.release()			
 
 	
 	
@@ -1119,9 +1119,9 @@ class internetRadio():
 				
 			
 			if song!='':
-				self.track=song.split('\n')[0]
+				self.track=song.strip().split('\n')[0]
 				print (self.track)
-				self.artist = song.split("\n")[1]
+				self.artist = song.strip().split("\n")[1]
 				
 				if self.artist in g.bannedArtists: 
 					self.play()
@@ -1129,20 +1129,20 @@ class internetRadio():
 				#add metadata
 				valid=True
 			
-				r = requests.get("http://["+self.ip+"]:55227/mp3?"+urllib.parse.quote(self.track, safe=''), timeout = 8, stream = True)
+				r = requests.get("http://["+self.ip+"]:55227/mp3?"+urllib.parse.quote(self.track, safe=''), timeout = 18, stream = True)
 				self.bufferingLock = True
 				try:
 					for char in r.iter_content(1024):
-						lock = threading.Lock()
+						#lock = threading.Lock()
 				
-						lock.acquire()
-						try: 
-							if self.bufferingLock:
-								char_array+=char
-							else:
-								raise ValueError("Skip")
-						finally: 
-							lock.release()
+						#lock.acquire()
+						#try: 
+						if self.bufferingLock:
+							char_array+=char
+						else:
+							raise ValueError("Skip")
+						#finally: 
+							#lock.release()
 						if len(char_array)>32000000:
 							char_array=b""
 							valid=False
@@ -1182,13 +1182,13 @@ class internetRadio():
 						pass
 					if len(myid)>60:
 						myid = myid[0-60]	
-					lock = threading.Lock()
-					lock.acquire()
+					#lock = threading.Lock()
+					#lock.acquire()
 					
-					try: 
-						self.g.get_builder().get_object("lasttuned").set_text(self.ip+"\n"+myid)
-					finally: 
-						lock.release()
+					#try: 
+					self.g.get_builder().get_object("lasttuned").set_text(self.ip+"\n"+myid)
+					#finally: 
+					#	lock.release()
 				try: 
 					self.player.play()
 				except: 
@@ -1199,14 +1199,14 @@ class internetRadio():
 		self.player.stop()
 	
 	def onEnded(self, event, player): 
-		import threading
-		lock = threading.Lock()
-		lock.acquire()
+		#import threading
+		#lock = threading.Lock()
+		#lock.acquire()
 		
-		try: 
-			self.play();
-		finally: 
-			lock.release()
+		#try: 
+		self.play();
+		#finally: 
+		#	lock.release()
 
 class OcsadURLRetriever:
 	def retrieveURL(url, max_length = 32000, reqtimeout = 800):
@@ -1343,13 +1343,13 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 				pass
 			self.wfile.write("\n".join(self.gateway.get_peers()).encode("utf-8"))
 		if path=="/id":
-			import threading
-			lock = threading.Lock()
-			lock.acquire()
-			try: 
-				self.wfile.write(self.gateway.ID.encode("utf-8"))
-			finally: 
-				lock.release()
+			#import threading
+			#lock = threading.Lock()
+			#lock.acquire()
+			#try: 
+			self.wfile.write(self.gateway.ID.encode("utf-8"))
+			#finally: 
+			#	lock.release()
 		if path=="/random-mp3":
 			if not self.client_address[0] in self.gateway.peers:
 				try:
