@@ -1144,11 +1144,11 @@ class internetRadio():
 							#
 						finally: 
 							self.bufferingLock = False
-						if len(char_array)>32000000:
-							char_array=b""
-							valid=False
-							print("MP3 file greater than 32000 kilibytes, or Skip signal, received, aborting")
-							break
+					if len(char_array)>32000000:
+						char_array=b""
+						valid=False
+						print("MP3 file greater than 32000 kilibytes, or Skip signal, received, aborting")
+						break
 					print ("Finished download")
 				except:
 					char_arry=b""
