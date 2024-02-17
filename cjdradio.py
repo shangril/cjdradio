@@ -1162,7 +1162,7 @@ class internetRadio():
 					with open(os.path.join(datadir,'temp.mp3'), 'wb') as myfile:
 						myfile.write(char_array)
 						myfile.close()
-					if self.player not is None and self.player.is_playing():
+					if self.player is not None and self.player.is_playing():
 						self.player.stop() 
 					
 					self.player = vlc.MediaPlayer(os.path.join(datadir,'temp.mp3'), 'rb')
