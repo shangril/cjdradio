@@ -266,6 +266,7 @@ class Cjdradio:
 class Gateway:
 	registered = False
 	bannedArtists=[]
+	blacklist = []
 
 	accessList = []
 
@@ -339,6 +340,13 @@ class Gateway:
 				if len(sys.argv)==1:
 
 					self.builder.get_object("settings_ip6addr").set_text(self.settings_ip6addr)
+		if os.path.exists(os.path.join(basedir, "settings_blacklist.txt")): 
+			#settings_blacklist	
+			with open(os.path.join(basedir,'settings_blacklist.txt'), 'r') as myfile:
+				self.blacklist=myfile.read().split("\n")
+				myfile.close()
+				if len(sys.argv)==1:
+					self.builder.get_object("clearBlacklist").set_label("Clear blacklist ("+str(len(self.blacklist))+")")
 		if os.path.exists(os.path.join(basedir, "settings_access_list.txt")): 
 			#settings_access_list	
 			with open(os.path.join(basedir,'settings_access_list.txt'), 'r') as myfile:
@@ -609,11 +617,36 @@ class Handler:
 	def onAccessListHide(self, *args): 
 		b.get_object("access_list_window").hide()
 		return True
-		
-	def onBanArtist (self, *args): 
-		g.bannedArtists.append(g.radio.artist)
+	def onBlacklist(self, *args): 
+		g.blacklist.append(g.radio.ip)
 		g.radio.stop()
 		g.radio.play()
+
+		
+		
+		home = expanduser("~")
+		basedir=os.path.join(home, ".cjdradio")
+		
+				
+		with open(os.path.join(basedir,'settings_blacklist.txt'), 'w') as myfile:
+			myfile.write("%s" % ("\n".join(g.blacklist)))
+			myfile.close()
+		g.load_settings_from_disk()
+	def onClearBlacklist(self, *args): 
+		home = expanduser("~")
+		basedir=os.path.join(home, ".cjdradio")
+		with open(os.path.join(basedir,'settings_blacklist.txt'), 'w') as myfile:
+			myfile.write("%s" % (""))
+			myfile.close()
+		g.load_settings_from_disk()
+
+
+	def onBanArtist (self, *args): 
+		g.blacklist.append(g.radio.artist)
+		g.radio.stop()
+		g.radio.play()
+
+		
 	def onClearBannedArtists (self, *args):
 		g.bannedArtists = []
 	def onRadio(self, *args): 
@@ -1032,7 +1065,7 @@ class internetRadio():
 			self.ip = ''
 			while self.ip == '':
 				peer = ''
-				while peer=='' or peer in self.g.bannedStations:
+				while peer=='' or peer in self.g.bannedStations or peer in self.g.blacklist:
 					tmpPeer = random.choice (self.g.peers)
 					try: 
 						pong = ''

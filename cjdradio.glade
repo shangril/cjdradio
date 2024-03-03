@@ -595,6 +595,7 @@ Make sure to firstly Discover New Stations Peers before launching the listening.
                       <object class="GtkComboBoxText" id="cbsinglestation">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
+                        <signal name="changed" handler="on_cbsinglestation_changed" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -735,6 +736,57 @@ Make sure to firstly Discover New Stations Peers before launching the listening.
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkBox">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkButton" id="blacklist">
+                        <property name="label" translatable="yes">Blacklist station permanently</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <signal name="clicked" handler="onBlacklist" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">or</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="clearBlacklist">
+                        <property name="label" translatable="yes">Clear blacklisted stations (0)</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                        <signal name="clicked" handler="onClearBlacklist" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">19</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkSeparator">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
@@ -742,7 +794,7 @@ Make sure to firstly Discover New Stations Peers before launching the listening.
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">22</property>
+                    <property name="position">23</property>
                   </packing>
                 </child>
                 <child>
@@ -754,7 +806,7 @@ Make sure to firstly Discover New Stations Peers before launching the listening.
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">23</property>
+                    <property name="position">24</property>
                   </packing>
                 </child>
                 <child>
@@ -850,7 +902,7 @@ Make sure to firstly Discover New Stations Peers before launching the listening.
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">24</property>
+                    <property name="position">25</property>
                   </packing>
                 </child>
               </object>
