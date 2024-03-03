@@ -632,11 +632,12 @@ class Handler:
 			myfile.write("%s" % ("\n".join(g.blacklist)))
 			myfile.close()
 		g.load_settings_from_disk()
-	def onClearBlacklist(self, *args): 
+	def onClearBlacklist(self, *args):
+		g.blacklist = [] 
 		home = expanduser("~")
 		basedir=os.path.join(home, ".cjdradio")
 		with open(os.path.join(basedir,'settings_blacklist.txt'), 'w') as myfile:
-			myfile.write("%s" % (""))
+			myfile.write("%s" % ("\n".join(g.blacklist)))
 			myfile.close()
 		g.load_settings_from_disk()
 
