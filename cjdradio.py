@@ -44,6 +44,29 @@ import requests
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import socket
 
+def tracker_update_daemon(g): 
+	while True: 
+		sleep(400)
+		g.registered = True
+		g.set_processedPeers([])
+		g.set_peers([])
+
+		newpeers = []
+
+		g.peers.append(g.get_settings_ip6addr())
+
+		try: 
+			newpeers = OcsadURLRetriever.retrieveURL("http://["+g.getBuilder().get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
+		except: 
+			print("Initial peer is currently offline")
+		newnewpeers = []
+		for p in newpeers:
+			if not p in g.peers: 
+				newnewpeers.append(p)
+
+		g.set_peers(g.peers+newnewpeers)
+
+
 def indexing_daemon(g): 
 	while True: 
 		if os.path.isdir(basedir):
@@ -279,6 +302,8 @@ class Gateway:
 	scan = None
 	
 	scanThread = None
+	
+	pingthread = None
 	
 	ID = 'Another random'
 	
@@ -1213,7 +1238,7 @@ class internetRadio():
 						myid = OcsadURLRetriever.retrieveURL("http://["+self.ip+"]:55227/id")
 						
 					except: 
-						pass
+						myid = "<unknown>"
 					if len(myid)>60:
 						myid = myid[0-60]	
 					#lock = threading.Lock()
@@ -1565,6 +1590,12 @@ if __name__ == "__main__":
 	o.getGateway().scanthread = Thread( target = indexing_daemon, args = (o.getGateway(), ))
 	o.getGateway().scanthread.daemon = True
 	o.getGateway().scanthread.start()
+	
+	o.getGateway().pingthread = Thread( target = tracker_update_daemon, args = (o.getGateway(), ))
+	o.getGateway().pingthread.daemon = True
+	o.getGateway().pingthread.start()
+	
+	
 						
 	if len(sys.argv)==6:
 		o.getGateway().settings_ip6addr=sys.argv[5]
