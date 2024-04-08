@@ -897,7 +897,9 @@ class Handler:
 		g.get_webserverThread().join(5)
 		g.bannerdaemon_thread.join(1)
 		g.scanThread.join(1)
-		print("Stopped web server, bannerdaemon, scan thread")
+		g.pingthread.join(1)
+		
+		print("Stopped web server, bannerdaemon, ping and scan threads")
 		Gtk.main_quit()
 	def onID(self, *args):
 		g.ID = b.get_object("station_id").get_text()
