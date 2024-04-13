@@ -287,6 +287,9 @@ class Cjdradio:
 
 
 class Gateway:
+	
+	httpLock = 0
+	
 	registered = False
 	bannedArtists=[]
 	blacklist = []
@@ -1287,229 +1290,245 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 	gateway = None
 		
 	def do_GET(self):
+		try:
+			self.gateway.httpLock=self.gateway.httpLock+1
+			
+			while self.gateway.httpLock>5:
+				sleep(5000)
+			
+				
+			home = expanduser("~")
+			basedir=os.path.join(home, ".cjdradio")
+
+			path = urllib.parse.urlparse(self.path).path
+			query = urllib.parse.urlparse(self.path).query
+
+			
+			self.send_response(200)
 		
-		home = expanduser("~")
-		basedir=os.path.join(home, ".cjdradio")
 
-		path = urllib.parse.urlparse(self.path).path
-		query = urllib.parse.urlparse(self.path).query
+			if (path!="/mp3" and path!="/flac"):
+				self.send_header("Content-Type", "text/plain")
+			else:
+				if path=="/mp3": 
+					self.send_header("Content-Type", "audio/mpeg")
+				if path=="/flac":
+					self.send_header("Content-Type", "audio/flac")
+			
+			self.end_headers()
 
-		
-		self.send_response(200)
-	
-
-		if (path!="/mp3" and path!="/flac"):
-			self.send_header("Content-Type", "text/plain")
-		else:
-			if path=="/mp3": 
-				self.send_header("Content-Type", "audio/mpeg")
-			if path=="/flac":
-				self.send_header("Content-Type", "audio/flac")
-		
-		self.end_headers()
-
-		if path=='/flac':
-			print (query)
-			basename = os.path.basename(urllib.parse.unquote(query))
-			filepath = os.path.join(g.shared_dir, basename)
-			if basename.endswith(".flac") and os.path.exists(filepath):
-				if not os.path.getsize(filepath) > 4000000000:
-					with open(filepath, 'rb') as myfile:
-						tmp = myfile.read()
-						myfile.close()
-						self.wfile.write(tmp)
-				else:
-					print ("Trying to serve a flac file greater than 4GiB, aborting")				
-		if path=="/flac-size": 
-			reply = ''
-			completed = False
-			while not completed:
-					flacfiles=[]
-					files = os.scandir(g.shared_dir)
-					for flac in files: 
-						if flac.name.endswith(".flac"):
-							flacfiles.append(flac.name)
-							
-					if len(flacfiles)>0:
-						size = 0		
-						for flac in flacfiles:
-							filepath = os.path.join(g.shared_dir, flac)
-							flacsize = os.path.getsize(filepath)
-							
-							size += flacsize
-						reply = str(size)
-						completed = True
+			if path=='/flac':
+				print (query)
+				basename = os.path.basename(urllib.parse.unquote(query))
+				filepath = os.path.join(g.shared_dir, basename)
+				if basename.endswith(".flac") and os.path.exists(filepath):
+					if not os.path.getsize(filepath) > 4000000000:
+						with open(filepath, 'rb') as myfile:
+							tmp = myfile.read()
+							myfile.close()
+							self.wfile.write(tmp)
 					else:
-						reply="0"
-						completed = True
-			self.wfile.write(reply.encode("utf-8"))
-		if path=="/flac-catalog": 
-			reply = ''
-			completed = False
-			while not completed:
-					flacfiles=[]
-					files = os.scandir(g.shared_dir)
-					for flac in files: 
-						if flac.name.endswith(".flac"):
-							flacfiles.append(flac.name)
-							
-					if len(flacfiles)>0:
-						size = 0		
-						for flac in flacfiles:
-							reply+=flac+"\n"
-							
-						completed = True
-					else:
-						reply=""
-						completed = True
-			self.wfile.write(reply.encode("utf-8"))
-
+						print ("Trying to serve a flac file greater than 4GiB, aborting")				
+			if path=="/flac-size": 
+				reply = ''
+				completed = False
+				while not completed:
+						flacfiles=[]
+						files = os.scandir(g.shared_dir)
+						for flac in files: 
+							if flac.name.endswith(".flac"):
+								flacfiles.append(flac.name)
+								
+						if len(flacfiles)>0:
+							size = 0		
+							for flac in flacfiles:
+								filepath = os.path.join(g.shared_dir, flac)
+								flacsize = os.path.getsize(filepath)
+								
+								size += flacsize
+							reply = str(size)
+							completed = True
+						else:
+							reply="0"
+							completed = True
+				self.wfile.write(reply.encode("utf-8"))
+			if path=="/flac-catalog": 
+				reply = ''
+				completed = False
+				while not completed:
+						flacfiles=[]
+						files = os.scandir(g.shared_dir)
+						for flac in files: 
+							if flac.name.endswith(".flac"):
+								flacfiles.append(flac.name)
+								
+						if len(flacfiles)>0:
+							size = 0		
+							for flac in flacfiles:
+								reply+=flac+"\n"
+								
+							completed = True
+						else:
+							reply=""
+							completed = True
+				self.wfile.write(reply.encode("utf-8"))
+		finally:
+			self.gateway.httpLock=self.gateway.httpLock-1
+			
 class WebRequestHandler(BaseHTTPRequestHandler):
 	gateway = None
 		
 	def do_GET(self):
+
+		try:
+			self.gateway.httpLock=self.gateway.httpLock+1
+			
+			while self.gateway.httpLock>5:
+				sleep(5000)
+			
 		
 
-		home = expanduser("~")
-		basedir=os.path.join(home, ".cjdradio")
+			home = expanduser("~")
+			basedir=os.path.join(home, ".cjdradio")
 
-		path = urllib.parse.urlparse(self.path).path
-		query = urllib.parse.urlparse(self.path).query
-	
-		self.send_response(200)
-		self.send_header("Server", "Cjdradio")
-		if (path!="/mp3" and path!="flac"):
-			self.send_header("Content-Type", "text/plain")
-		else:
-			if path=="/mp3": 
-				self.send_header("Content-Type", "audio/mpeg")
-			if path=="/flac":
-				self.send_header("Content-Type", "audio/flac")
-		self.end_headers()
-		reply="Cjdradio\n"
-		reply=reply+"Version: 0.1\n"
+			path = urllib.parse.urlparse(self.path).path
+			query = urllib.parse.urlparse(self.path).query
 		
+			self.send_response(200)
+			self.send_header("Server", "Cjdradio")
+			if (path!="/mp3" and path!="flac"):
+				self.send_header("Content-Type", "text/plain")
+			else:
+				if path=="/mp3": 
+					self.send_header("Content-Type", "audio/mpeg")
+				if path=="/flac":
+					self.send_header("Content-Type", "audio/flac")
+			self.end_headers()
+			reply="Cjdradio\n"
+			reply=reply+"Version: 0.1\n"
+			
 
-		
-		if path=="/":
-			self.wfile.write("Cjdradio\n0.1\nhttps://github.com/shangril/cjdradio".encode("utf-8"))
-		if path=="/ping":
-			self.wfile.write("pong".encode("utf-8"))
+			
+			if path=="/":
+				self.wfile.write("Cjdradio\n0.1\nhttps://github.com/shangril/cjdradio".encode("utf-8"))
+			if path=="/ping":
+				self.wfile.write("pong".encode("utf-8"))
 
-		if path=="/listpeers":
-			try: 
-				if not self.client_address[0] in self.gateway.peers and self.client_address!="::":
-					self.gateway.get_peers().append(self.client_address[0])
-			except: 
-				pass
-			self.wfile.write("\n".join(self.gateway.get_peers()).encode("utf-8"))
-		if path=="/id":
-			import threading
-			lock = threading.Lock()
-			lock.acquire()
-			try: 
-				self.wfile.write(self.gateway.ID.encode("utf-8"))
-			finally: 
-				lock.release()
-		if path=="/random-mp3":
-			if not self.client_address[0] in self.gateway.peers:
-				try:
+			if path=="/listpeers":
+				try: 
 					if not self.client_address[0] in self.gateway.peers and self.client_address!="::":
 						self.gateway.get_peers().append(self.client_address[0])
-				except:
+				except: 
 					pass
-			reply = ''
-			completed = False
-			while not completed:
-					mp3files=[]
-					files = os.scandir(g.shared_dir)
-					for mp3 in files: 
-						if mp3.name.endswith(".mp3"):
-							mp3files.append(mp3)
-					if self.client_address[0]==g.settings_ip6addr or self.client_address[0] in g.accessList: #localmachine or allowed one
-						unshareddir=os.path.join(basedir, "Unshared")
-						if not os.path.exists(unshareddir):
-							os.makedirs(unshareddir)
-						files = os.scandir(unshareddir)
+				self.wfile.write("\n".join(self.gateway.get_peers()).encode("utf-8"))
+			if path=="/id":
+				import threading
+				lock = threading.Lock()
+				lock.acquire()
+				try: 
+					self.wfile.write(self.gateway.ID.encode("utf-8"))
+				finally: 
+					lock.release()
+			if path=="/random-mp3":
+				if not self.client_address[0] in self.gateway.peers:
+					try:
+						if not self.client_address[0] in self.gateway.peers and self.client_address!="::":
+							self.gateway.get_peers().append(self.client_address[0])
+					except:
+						pass
+				reply = ''
+				completed = False
+				while not completed:
+						mp3files=[]
+						files = os.scandir(g.shared_dir)
 						for mp3 in files: 
 							if mp3.name.endswith(".mp3"):
 								mp3files.append(mp3)
-								
-								
+						if self.client_address[0]==g.settings_ip6addr or self.client_address[0] in g.accessList: #localmachine or allowed one
+							unshareddir=os.path.join(basedir, "Unshared")
+							if not os.path.exists(unshareddir):
+								os.makedirs(unshareddir)
+							files = os.scandir(unshareddir)
+							for mp3 in files: 
+								if mp3.name.endswith(".mp3"):
+									mp3files.append(mp3)
+									
+									
 
-					if len(mp3files)>0:		
-						mp3=random.choice(mp3files)
-						artist=''
-						album=''
-						title=''
-						datadir = os.path.join(basedir, "MetadataShares")
-						if os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")) and os.path.exists(os.path.join(datadir, mp3.name+".album.txt")) and os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
-							with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'r') as myfile:
-								artist = myfile.read()
-								myfile.close()
-							with open(os.path.join(datadir,mp3.name+'.album.txt'), 'r') as myfile:
-								album = myfile.read()
-								myfile.close()
-							with open(os.path.join(datadir,mp3.name+'.title.txt'), 'r') as myfile:
-								title = myfile.read()
-								myfile.close()
-							if artist != '' and album != '' and title != '':
-								reply = mp3.name+"\n"+artist+"\n"+album+"\n"+title
-								completed = True
-					else:
-
-						reply+="No mp3 found, sorry!"
-						completed = True
-			self.wfile.write(reply.encode("utf-8"))
-		if path=='/mp3':
-			print (query)
-			basename = os.path.basename(urllib.parse.unquote(query))
-			filepath = os.path.join(g.shared_dir, basename)
-			if basename.endswith(".mp3") and os.path.exists(filepath):
-				if not os.path.getsize(filepath) > 30000000:
-					with open(filepath, 'rb') as myfile:
-						tmp = myfile.read()
-						myfile.close()
-						self.wfile.write(tmp)
-				else:
-					print ("Trying to serve a mp3 file greater than 30000 kilibytes, aborting")
-			else: 
-				if self.client_address[0]==g.settings_ip6addr or self.client_address[0] in g.accessList: 
-				#local machine or allowed one
-					unshareddir=os.path.join(basedir, "Unshared")
-					if not os.path.exists(unshareddir):
-						os.makedirs(unshareddir)
-
-					filepath = os.path.join(unshareddir, basename)
-					if basename.endswith(".mp3") and os.path.exists(filepath):
-						if not os.path.getsize(filepath) > 30000000:
-							with open(filepath, 'rb') as myfile:
-								tmp = myfile.read()
-								myfile.close()
-								self.wfile.write(tmp)
+						if len(mp3files)>0:		
+							mp3=random.choice(mp3files)
+							artist=''
+							album=''
+							title=''
+							datadir = os.path.join(basedir, "MetadataShares")
+							if os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")) and os.path.exists(os.path.join(datadir, mp3.name+".album.txt")) and os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
+								with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'r') as myfile:
+									artist = myfile.read()
+									myfile.close()
+								with open(os.path.join(datadir,mp3.name+'.album.txt'), 'r') as myfile:
+									album = myfile.read()
+									myfile.close()
+								with open(os.path.join(datadir,mp3.name+'.title.txt'), 'r') as myfile:
+									title = myfile.read()
+									myfile.close()
+								if artist != '' and album != '' and title != '':
+									reply = mp3.name+"\n"+artist+"\n"+album+"\n"+title
+									completed = True
 						else:
-							print ("Trying to serve a mp3 file greater than 30000 kilibytes, aborting")
-		if path=="/mp3-catalog": 
-			reply = ''
-			completed = False
-			while not completed:
-					flacfiles=[]
-					files = os.scandir(g.shared_dir)
-					for flac in files: 
-						if flac.name.endswith(".mp3"):
-							flacfiles.append(flac.name)
-							
-					if len(flacfiles)>0:
-						size = 0		
-						for flac in flacfiles:
-							reply+=flac+"\n"
-							
-						completed = True
-					else:
-						reply=""
-						completed = True
-			self.wfile.write(reply.encode("utf-8"))
 
+							reply+="No mp3 found, sorry!"
+							completed = True
+				self.wfile.write(reply.encode("utf-8"))
+			if path=='/mp3':
+				print (query)
+				basename = os.path.basename(urllib.parse.unquote(query))
+				filepath = os.path.join(g.shared_dir, basename)
+				if basename.endswith(".mp3") and os.path.exists(filepath):
+					if not os.path.getsize(filepath) > 30000000:
+						with open(filepath, 'rb') as myfile:
+							tmp = myfile.read()
+							myfile.close()
+							self.wfile.write(tmp)
+					else:
+						print ("Trying to serve a mp3 file greater than 30000 kilibytes, aborting")
+				else: 
+					if self.client_address[0]==g.settings_ip6addr or self.client_address[0] in g.accessList: 
+					#local machine or allowed one
+						unshareddir=os.path.join(basedir, "Unshared")
+						if not os.path.exists(unshareddir):
+							os.makedirs(unshareddir)
+
+						filepath = os.path.join(unshareddir, basename)
+						if basename.endswith(".mp3") and os.path.exists(filepath):
+							if not os.path.getsize(filepath) > 30000000:
+								with open(filepath, 'rb') as myfile:
+									tmp = myfile.read()
+									myfile.close()
+									self.wfile.write(tmp)
+							else:
+								print ("Trying to serve a mp3 file greater than 30000 kilibytes, aborting")
+			if path=="/mp3-catalog": 
+				reply = ''
+				completed = False
+				while not completed:
+						flacfiles=[]
+						files = os.scandir(g.shared_dir)
+						for flac in files: 
+							if flac.name.endswith(".mp3"):
+								flacfiles.append(flac.name)
+								
+						if len(flacfiles)>0:
+							size = 0		
+							for flac in flacfiles:
+								reply+=flac+"\n"
+								
+							completed = True
+						else:
+							reply=""
+							completed = True
+				self.wfile.write(reply.encode("utf-8"))
+		finally:
+			self.gateway.httpLock=self.gateway.httpLock-1
 					
 					
 if __name__ == "__main__":
