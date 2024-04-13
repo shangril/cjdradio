@@ -1293,8 +1293,8 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 		try:
 			self.gateway.httpLock=self.gateway.httpLock+1
 			
-			while self.gateway.httpLock>5:
-				sleep(5000)
+			if self.gateway.httpLock>5:
+				return
 			
 				
 			home = expanduser("~")
@@ -1383,9 +1383,8 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 		try:
 			self.gateway.httpLock=self.gateway.httpLock+1
 			
-			while self.gateway.httpLock>5:
-				sleep(5000)
-			
+			if self.gateway.httpLock>5:
+				return
 		
 
 			home = expanduser("~")
