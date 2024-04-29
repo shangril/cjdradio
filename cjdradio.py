@@ -58,7 +58,11 @@ def tracker_update_daemon(g):
 		try: 
 			newpeers = OcsadURLRetriever.retrieveURL("http://["+g.getBuilder().get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
 		except: 
-			print("Initial peer is currently offline")
+			print("Initial peer is currently offline or we are in daemon mode. ")
+			try: 
+				newpeers = OcsadURLRetriever.retrieveURL("http://["+sys.argv[2]+"]:55227/listpeers").split("\n")
+			except: 
+				print("Unable to reach initial peer")
 		newnewpeers = []
 		for p in newpeers:
 			if not p in g.peers: 
