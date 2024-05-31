@@ -1,6 +1,6 @@
 * prerequisites
 
-You'll need Python and PIP (python package installer) through your usual software channels provided by your operating system. 
+You'll need to install Python and PIP (python package installer) through your usual software channels provided by your operating system. 
 
 * installation of dependencies
   
