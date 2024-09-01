@@ -315,10 +315,12 @@ class Gateway:
 	ID = 'Another random'
 	
 	webserver_thread = None
+	
 	bannerdaemon_thread = None
 	bannedStations = []
 	settings_ip6addr = "::"
 	webserver = None
+	
 	
 	processedPeers=[]
 	peers = []
@@ -435,6 +437,25 @@ class Gateway:
 		return self.scan
 class Handler:
 
+
+	#shared video station descriptions, title and lists
+	descs = {}
+	titles = {}
+	vlist = {}
+	
+	#currenlty selected video station, metadata for its vids, and selected vid
+	v = None
+	vip = None
+	
+	vtitles = {}
+	vcategories = {}
+	vartists = {}
+	vdescriptions = {}
+	
+	vindexes = []
+	
+	tv = None
+	
 
 	b = None
 	g = None
@@ -636,6 +657,9 @@ class Handler:
 		dialog.run()
 		dialog.destroy()
 						
+	def onFullscreen(self, *args):
+		self.tv.player.toggle_fullscreen()
+
 	def onMoveHide(self, *args): 
 		b.get_object("move_win").hide()
 		return True
@@ -922,6 +946,204 @@ class Handler:
 		with open(os.path.join(basedir,'settings_id.txt'), 'w') as myfile:
 			myfile.write("%s" % g.ID)
 			myfile.close()
+			
+	def onSystemPlayer(self, *args):
+		print ("system player")
+		home = expanduser("~")
+		
+		basedir=os.path.join(home, ".cjdradio")
+
+		playlistfile = os.path.join(basedir, "playlist.m3u")
+		
+		unshare=os.path.join(basedir, "VideoUnshared")
+		
+		unsharemeta=os.path.join(basedir, "VideoUnsharedMetadata")
+		
+		filez=os.scandir(unshare)
+		
+		print("creating m3u playlist")
+		output=''
+		for file in filez: 
+			if file.name.endswith(".mp4"):
+				output+=os.path.join(unshare, file.name)+"\n"
+		
+		with open(playlistfile, 'w') as myfile:
+			myfile.write("%s" % output)
+			myfile.close()
+
+		
+		
+		print("m3u playlist created, attempting to launch system player")
+		try: 
+			import subprocess, platform
+			if platform.system() == 'Darwin':
+				subprocess.call(('open', playlistfile))
+			elif platform.system() == 'Windows':
+				os.startfile(playlistfile)
+			else:
+				subprocess.call(('xdg-open', playlistfile))
+		except: 
+				dialog = Gtk.MessageDialog(
+							parent=b.get_object("cjdradio_main_window") ,
+							modal=True,
+							message_type=Gtk.MessageType.INFO,
+							buttons=Gtk.ButtonsType.OK,
+							text="Small problem.  "
+						)
+				dialog.format_secondary_text("The file "+playlistfile+" was created OK but you will have to locate it and open it manually")
+				dialog.run()
+				dialog.destroy()
+
+	def notImplemented(self, *args): 
+		dialog = Gtk.MessageDialog(
+					parent=b.get_object("cjdradio_main_window") ,
+					modal=True,
+					message_type=Gtk.MessageType.INFO,
+					buttons=Gtk.ButtonsType.OK,
+					text="Not implemented.  "
+				)
+		dialog.format_secondary_text("This feature is still to be developped.")
+		dialog.run()
+		dialog.destroy()
+
+
+
+	def onVideoSaveToShares(self, *args):
+		home = expanduser("~")
+		
+		basedir=os.path.join(home, ".cjdradio")
+
+		videosharesdir=os.path.join(basedir, "VideoShares")
+
+		print("Downloading")
+		if self.tv!=None:
+			print("found tv")
+			home = expanduser("~")
+			
+			shared_dir=videosharesdir
+			
+			if not os.path.exists(os.path.join(shared_dir, self.tv.mp4)):
+				
+				os.rename(os.path.join(basedir, "temp.mp4"), os.path.join(shared_dir, self.tv.mp4))
+				metadir = os.path.join(basedir, "VideoMetadata")
+				
+				if not os.path.isdir(metadir):
+					os.mkdir(metadir)
+				
+				# saving metadata
+				n=self.v.replace(".mp4", "", 1)
+				if self.vartists[self.v]!= '' and not self.vartists[self.v]== None:
+					with open(os.path.join(metadir,n+'.artist.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vartists[self.v])
+						myfile.close()
+				if self.vtitles[self.v]!= '' and not self.vtitles[self.v]== None:
+					with open(os.path.join(metadir,n+'.title.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vtitles[self.v])
+						myfile.close()
+				if self.vcategories[self.v]!= '' and not self.vcategories[self.v]== None:
+					with open(os.path.join(metadir,n+'.category.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vcategories[self.v])
+						myfile.close()
+				if self.vdescriptions[self.v]!= '' and not self.vdescriptions[self.v]== None:
+					with open(os.path.join(metadir,n+'.description.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vdescriptions[self.v])
+						myfile.close()
+
+				
+				
+				dialog = Gtk.MessageDialog(
+							parent=b.get_object("cjdradio_main_window") ,
+							modal=True,
+							message_type=Gtk.MessageType.INFO,
+							buttons=Gtk.ButtonsType.OK,
+							text="Success.  "
+						)
+				dialog.format_secondary_text("Video saved in Shares.")
+				dialog.run()
+				dialog.destroy()
+				
+			else: 
+				dialog = Gtk.MessageDialog(
+							parent=b.get_object("cjdradio_main_window") ,
+							modal=True,
+							message_type=Gtk.MessageType.INFO,
+							buttons=Gtk.ButtonsType.OK,
+							text="Failure.  "
+						)
+				dialog.format_secondary_text("There is already a file of this name in Shares. Maybe you already d/l'ed it? ")
+				dialog.run()
+				dialog.destroy()
+
+
+
+
+	def onVideoSaveToUnshared(self, *args):
+		home = expanduser("~")
+		
+		
+		basedir=os.path.join(home, ".cjdradio")
+
+		videounshareddir=os.path.join(basedir, "VideoUnshared")
+
+		print("Downloading")
+		if self.tv!=None:
+			print("found tv")
+			home = expanduser("~")
+			
+			shared_dir=videounshareddir
+			
+			if not os.path.exists(os.path.join(shared_dir, self.tv.mp4)):
+				
+				os.rename(os.path.join(basedir, "temp.mp4"), os.path.join(shared_dir, self.tv.mp4))
+				
+				metadir = os.path.join(basedir, "VideoUnsharedMetadata")
+				
+				if not os.path.isdir(metadir):
+					os.mkdir(metadir)
+				
+				# saving metadata
+				n=self.v.replace(".mp4", "", 1)
+				if self.vartists[self.v]!= '' and not self.vartists[self.v]== None:
+					with open(os.path.join(metadir,n+'.artist.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vartists[self.v])
+						myfile.close()
+				if self.vtitles[self.v]!= '' and not self.vtitles[self.v]== None:
+					with open(os.path.join(metadir,n+'.title.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vtitles[self.v])
+						myfile.close()
+				if self.vcategories[self.v]!= '' and not self.vcategories[self.v]== None:
+					with open(os.path.join(metadir,n+'.category.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vcategories[self.v])
+						myfile.close()
+				if self.vdescriptions[self.v]!= '' and not self.vdescriptions[self.v]== None:
+					with open(os.path.join(metadir,n+'.description.txt'), 'w') as myfile:
+						myfile.write("%s" % self.vdescriptions[self.v])
+						myfile.close()
+
+				
+				
+				dialog = Gtk.MessageDialog(
+							parent=b.get_object("cjdradio_main_window") ,
+							modal=True,
+							message_type=Gtk.MessageType.INFO,
+							buttons=Gtk.ButtonsType.OK,
+							text="Success.  "
+						)
+				dialog.format_secondary_text("Video saved in Unshared.")
+				dialog.run()
+				dialog.destroy()
+				
+			else: 
+				dialog = Gtk.MessageDialog(
+							parent=b.get_object("cjdradio_main_window") ,
+							modal=True,
+							message_type=Gtk.MessageType.INFO,
+							buttons=Gtk.ButtonsType.OK,
+							text="Failure.  "
+						)
+				dialog.format_secondary_text("There is already a file of this name in Unshared. Maybe you already d/l'ed it? ")
+				dialog.run()
+				dialog.destroy()
 
 
 	def onDownload (self, *args): 
@@ -1047,12 +1269,276 @@ class Handler:
 		dialog.format_secondary_text("Warning ! A restart of the app is required for your changes to take effect")
 		dialog.run()
 		dialog.destroy()
+	def onVideoSkip (self, *args):
+		self.tv.skip()
 		
-		
+	def onVideoStop (self, *args):
+		self.tv.stop()
+	def onVideoBackward(self, *args):
+		self.tv.player.set_time(self.tv.player.get_time()-30000)
+	def onVideoForward(self, *args):
+		self.tv.player.set_time(self.tv.player.get_time()+150000)
 
 
+	def onVideoCrawl(self, *args):
+		
+		videopeers= []
+		
+		mypeers = g.get_peers()
+		for p in mypeers:
+			try:
+				if OcsadURLRetriever.retrieveURL("http://["+p+"]:55229/ping", 12, 3) == "pong":
+					videopeers.append(p)
+					print ("crawling: video for "+p)
+			except:
+				print ("crawling: no video for "+p) 
+		b.get_object("cbvideostations").remove_all()
+		
+		print ("crawling video peers for title and descriptions")
+		
+		
+		for p in videopeers: 
+			title = '(titleless)'
+			description = '[no description provided]'
+		
+			try: 
+				data=OcsadURLRetriever.retrieveURL("http://["+p+"]:55229/station-metadata", 32000, 3)
+			except:
+				data=""
+			
+			datas = data.split("\n")
+			
+			if datas[0]!='':
+				title = datas[0]
+			if len(datas)>1:
+				description = "\n".join(datas[1:])
+		
+			self.titles[p] = title
+			self.descs[p] = description
+			
+			
+			try: 
+				listing = OcsadURLRetriever.retrieveURL("http://["+p+"]:55229/mp4-catalog", 320000000, 6)
+			except: 
+				listing = ''
+			self.vlist[p] = listing
+				
+		for p in videopeers:
+			b.get_object("cbvideostations").append(p, "("+str(len(self.vlist[p].split("\n")))+")["+p+"]: "+self.titles[p]+"\n"+self.descs[p].replace("\n", " ")[:105]+"…")
+			
+		b.get_object("cbvideostations").set_active_id(videopeers[0])
+
+	def onVideoPlay(self, *args):
+		
+		self.v=b.get_object("cbvideos").get_active_id()
+		
+		self.tv=internetTV(g, self)
+		
+		self.tv.play(self.vip, b.get_object("cbvideos").get_active_id())
+		
+		
+		
+	def onVideoConnect(self, *args): 
+		station = b.get_object("cbvideostations").get_active_id()
+		self.vip = station
+		print ("retrieving video list from"+station)
+
+		print ("which is entitled:"+self.titles[station])
+
+		print ("and describes itself as \""+self.descs[station]+"\"")
+		print ("connecting…")
+
+		try: 
+			listing = OcsadURLRetriever.retrieveURL("http://["+station+"]:55229/mp4-catalog", 320000000, 6)
+		except: 
+			listing = ''
+		self.vlist[station] = listing
+
+		print (str(len(self.vlist[station].split("\n")))+" videos found, fetching their metadata")
+		
+		self.vtitles={}
+		self.vcategories={}
+		self.vartists={}
+		self.vdescriptions={}
+		self.vindexes=[]
+
+		for v in self.vlist[station].split("\n"):
+			if v!='' and v.endswith(".mp4"): 
+				
+				self.vindexes.append(v)
+				
+				data="\n\n\n\n"
+				try: 
+					data = OcsadURLRetriever.retrieveURL("http://["+station+"]:55229/mp4-metadata?"+urllib.parse.quote(v, safe=''), 3200000, 6).strip()
+				except: 
+					data = "Network error\nerror\nerror\nerror\n"
+				
+				datas=data.split("\n")
+				
+				if len(datas)==0: 
+					datas[0]="unavail"
+				
+					datas[1]="unavail"
+				
+					datas[2]="unavail"
+				
+					datas[3]="unavail"
+
+				if len(datas)==1: 
+					datas[1]="unavail"
+				
+					datas[2]="unavail"
+				
+					datas[3]="unavail"
+
+				if len(datas)==2: 
+				
+					datas[2]="unavail"
+				
+					datas[3]="unavail"
+
+				if len(datas)==3: 
+				
+					datas[3]="unavail"
+				
+				self.vtitles[v]=datas[0]
+				self.vcategories[v]=datas[1]
+				self.vartists[v]=datas[2]
+				self.vdescriptions[v]=datas[3]	
+
+				vtext=""
+
+				vtext +=v+"\n["+datas[1]+"]"+datas[0]
+				
+				if datas[2]!="unavail" and datas[2]!='':
+					vtext+"\n"+datas[2]
+				
+				
+				
+				b.get_object("cbvideos").append(v, vtext)
+				
+			b.get_object("cbvideos").set_active(0)
+
+			
+
+
+
+
+
+
+
+
+					
 class HTTPServerV6(ThreadingHTTPServer):
 	address_family = socket.AF_INET6
+
+class internetTV():
+	
+	g=None
+	h=None
+	ip=None
+	mp4=None
+	index = 0
+	player=None;
+	
+	bufferingLock = False
+	
+	def __init__ (self, gateway, handler):
+		self.g=gateway
+		self.h=handler
+		self.player = vlc.MediaPlayer()
+		
+	def play(self, myip, mymp4):
+		self.g.get_builder().get_object("video_nowplaying").set_text("Buffering… Bytes received: estimation ongoing")
+		 
+		self.ip=myip
+		self.mp4=mymp4
+		
+		self.index=self.h.vindexes.index(mymp4)
+		
+		
+		self.threadPlay = Thread(target = self.playThread)
+		self.threadPlay.start()
+		
+	def stop(self):
+		self.player.stop()
+		
+	def playThread(self):
+		print (self.mp4)
+		
+		home = expanduser("~")
+		datadir=os.path.join(home, ".cjdradio")
+
+		
+		self.bufferingLock = True
+		char_array=b""
+		try:
+			char_array = OcsadURLRetriever.retrieveURL("http://["+self.ip+"]:55229/mp4?"+urllib.parse.quote(self.mp4, safe=''), 1200000000, 30, False, 1024*1024, self.g.get_builder().get_object("video_nowplaying"))
+
+			print ("Finished download")
+		except:
+			print (sys.exception().__traceback__)
+			char_array=b""
+	
+	
+		if len(char_array)>0 and self.bufferingLock: 
+			home = expanduser("~")
+			datadir=os.path.join(home, ".cjdradio")
+
+
+			with open(os.path.join(datadir,'temp.mp4'), 'wb') as myfile:
+				myfile.write(char_array)
+				myfile.close()
+
+			
+
+			self.bufferingLock=False
+			
+			if self.player != None and self.player.is_playing():
+				self.player.stop()
+				
+				
+			
+			media = self.player.get_instance().media_new(os.path.join(datadir,'temp.mp4'), "rb")
+			
+			self.player.set_media(media)
+			
+			
+			self.g.get_builder().get_object("fsw").set_keep_above(True)
+			self.g.get_builder().get_object("fsw").show()
+			
+			em=self.player.event_manager()
+			em.event_attach(vlc.EventType.MediaPlayerEndReached, self.onEnded, self.player)
+			caption = ''
+			if not self.h.vartists[self.mp4]==None and not self.h.vartists[self.mp4]=='':
+				caption+="["+self.h.vartists[self.mp4]+"] "
+			caption+=self.h.vtitles[self.mp4]
+			if not self.h.vdescriptions[self.mp4]==None and not self.h.vdescriptions[self.mp4]=='':
+				caption+="\n"+self.h.vdescriptions[self.mp4]
+			self.g.get_builder().get_object("video_nowplaying").set_text(caption)
+
+
+			self.player.play()
+			if not self.player.get_fullscreen():
+				self.player.toggle_fullscreen()
+			
+	def onEnded(self, event, player):
+		
+		self.g.get_builder().get_object("fsw").hide()
+		self.index=self.index+1
+		
+		if self.index<len(self.h.vindexes	):
+			self.play (self.ip, self.h.vindexes[self.index])
+	def skip(self):
+		self.player.stop()
+		
+
+		
+		self.g.get_builder().get_object("fsw").hide()
+		self.index=self.index+1
+		
+		if self.index<len(self.h.vindexes):
+			self.play (self.ip, self.h.vindexes[self.index])
 
 class internetRadio(): 
 
@@ -1218,7 +1704,7 @@ class internetRadio():
 							break
 					print ("Finished download")
 				except:
-					char_arry=b""
+					char_array=b""
 			
 			
 				if len(char_array)>0 and self.bufferingLock: 
@@ -1239,7 +1725,7 @@ class internetRadio():
 					
 
 					
-					self.display.set_text(song.split("\n")[1]+" - "+song.split("\n")[3]+" ["+song.split("\n")[2]+"]")
+					self.display.set_text(song.split("\n")[1]+" - "+song.split("\n")[3]+" ["+song.split("\n")[2]+"]\n"+self.track)
 					
 					myid = "Another random"
 					
@@ -1277,19 +1763,164 @@ class internetRadio():
 		#	lock.release()
 
 class OcsadURLRetriever:
-	def retrieveURL(url, max_length = 32000, reqtimeout = 800):
+	def retrieveURL(url, max_length = 32000, reqtimeout = 800, decode=True, iteration=1024, text_setter=None):
 		try: 
 			r = requests.get(url, timeout=reqtimeout, stream=True)
 			char_array=b"";
-			for char in r.iter_content(1024):
+			for char in r.iter_content(iteration):
 				char_array+=char
+				if not text_setter == None:
+					text_setter.set_text("Buffering… Received "+str(len(char_array))+" bytes")
 				if len(char_array)>max_length:
 					raise ValueError("Invalid Ocsad URL")
-			return char_array.decode("utf-8")
+			if decode:			
+				return char_array.decode("utf-8")
+			else:
+				return char_array
 		except(TimeoutError):
 			raise ValueError("Invalid Ocsad URL")
 		except: 
 			raise
+
+
+class WebRequestHandlerVideo(BaseHTTPRequestHandler):
+	def do_GET(self):
+		try:
+			self.gateway.httpLock=self.gateway.httpLock+1
+			
+			if self.gateway.httpLock>5:
+				return
+			
+			home = expanduser("~")
+			basedir=os.path.join(home, ".cjdradio")
+
+			path = urllib.parse.urlparse(self.path).path
+			query = urllib.parse.urlparse(self.path).query
+
+			
+			self.send_response(200)
+		
+
+			if (path!="/mp4"):
+				self.send_header("Content-Type", "text/plain")
+			else:
+				self.send_header("Content-Type", "video/mp4")
+
+			self.end_headers()
+
+			if path=="/":
+				self.wfile.write("Cjdradio\n0.3\nhttps://github.com/shangril/cjdradio".encode("utf-8"))
+			if path=="/ping":
+				self.wfile.write("pong".encode("utf-8"))
+
+
+
+
+			
+			if path=='/mp4':
+				print (query)
+				basename = os.path.basename(urllib.parse.unquote(query))
+				filepath = os.path.join(os.path.join(basedir, "VideoShares"), basename)
+				if basename.endswith(".mp4") and os.path.exists(filepath):
+					if not os.path.getsize(filepath) > 1200000000:
+						with open(filepath, 'rb') as myfile:
+							tmp = myfile.read()
+							myfile.close()
+							self.wfile.write(tmp)
+					else:
+						print ("Trying to serve a mp4 file greater than 1.2GiB, aborting")
+			if path=="/mp4-catalog": 
+				reply = ''
+				completed = False
+				while not completed:
+						mp4files=[]
+						files = os.scandir(os.path.join(basedir, "VideoShares"))
+						for mp4 in files: 
+							if mp4.name.endswith(".mp4"):
+								mp4files.append(mp4.name)
+								
+						if len(mp4files)>0:
+							size = 0		
+							for mp4 in mp4files:
+								reply+=mp4+"\n"
+								
+							completed = True
+						else:
+							reply=""
+							completed = True
+				self.wfile.write(reply.encode("utf-8"))
+			if path=="/mp4-metadata":
+				basename = os.path.basename(urllib.parse.unquote(query))
+				filepath = os.path.join(os.path.join(basedir, "VideoShares"), basename)
+				metadatapath = os.path.join(basedir, "VideoMetadata")
+				reply=''
+
+				if basename.endswith(".mp4") and os.path.exists(filepath) and os.path.exists(metadatapath):
+					
+					title = ''
+					artist = ''
+					category = ''
+					description = ''
+					
+					titlefilepath = os.path.join(metadatapath, basename.replace(".mp4", ".title.txt"))
+					artistfilepath = os.path.join(metadatapath, basename.replace(".mp4", ".artist.txt"))
+					categoryfilepath = os.path.join(metadatapath, basename.replace(".mp4", ".category.txt"))
+					descriptionfilepath = os.path.join(metadatapath, basename.replace(".mp4", ".description.txt"))
+
+
+					if os.path.exists(titlefilepath):
+						with open(titlefilepath, 'r') as myfile:
+									title = myfile.read().replace("\n", "")
+									myfile.close()
+					if os.path.exists(categoryfilepath):
+						with open(categoryfilepath, 'r') as myfile:
+									category = myfile.read().replace("\n", "")
+									myfile.close()
+					if os.path.exists(artistfilepath):
+						with open(artistfilepath, 'r') as myfile:
+									artist = myfile.read().replace("\n", "")
+									#artist found! override category to "Music"
+									category = "Music"
+									myfile.close()
+					if os.path.exists(descriptionfilepath):
+						with open(descriptionfilepath, 'r') as myfile:
+									description = myfile.read().replace("\n", "")
+									myfile.close()
+					
+					reply = title+"\n"+category+"\n"+artist+"\n"+description+"\n"
+					
+					
+
+				self.wfile.write(reply.encode("utf-8"))
+				
+				
+			if path=="/station-metadata":
+				metadatapath = os.path.join(basedir, "VideoMetadata")
+				reply=''
+				stationtitlefilepath = os.path.join(metadatapath, "station_title.txt")
+				stationdescriptionfilepath = os.path.join(metadatapath, "station_description.txt")
+
+				title = ''
+				description = ''
+
+				if os.path.exists(stationtitlefilepath):
+					with open(stationtitlefilepath, 'r') as myfile:
+								title = myfile.read().strip()
+								myfile.close()
+
+				if os.path.exists(stationdescriptionfilepath):
+					with open(stationdescriptionfilepath, 'r') as myfile:
+								description = myfile.read().strip()
+								myfile.close()
+				reply = title+"\n"+description+"\n"
+
+				self.wfile.write(reply.encode("utf-8"))
+
+
+		finally:
+			self.gateway.httpLock=self.gateway.httpLock-1
+
+
 class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 	gateway = None
 		
@@ -1320,6 +1951,11 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 					self.send_header("Content-Type", "audio/flac")
 			
 			self.end_headers()
+
+			if path=="/":
+				self.wfile.write("Cjdradio\n0.3\nhttps://github.com/shangril/cjdradio".encode("utf-8"))
+			if path=="/ping":
+				self.wfile.write("pong".encode("utf-8"))
 
 			if path=='/flac':
 				print (query)
@@ -1408,12 +2044,12 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 					self.send_header("Content-Type", "audio/flac")
 			self.end_headers()
 			reply="Cjdradio\n"
-			reply=reply+"Version: 0.1\n"
+			reply=reply+"Version: 0.3\n"
 			
 
 			
 			if path=="/":
-				self.wfile.write("Cjdradio\n0.1\nhttps://github.com/shangril/cjdradio".encode("utf-8"))
+				self.wfile.write("Cjdradio\n0.3\nhttps://github.com/shangril/cjdradio".encode("utf-8"))
 			if path=="/ping":
 				self.wfile.write("pong".encode("utf-8"))
 
@@ -1549,6 +2185,20 @@ if __name__ == "__main__":
 	
 	if not os.path.isdir(basedir):
 		os.makedirs(basedir)
+
+	videosharesdir=os.path.join(basedir, "VideoShares")
+	
+	if not os.path.isdir(videosharesdir):
+		os.makedirs(videosharesdir)
+
+	videounshareddir=os.path.join(basedir, "VideoUnshared")
+	
+	if not os.path.isdir(videounshareddir):
+		os.makedirs(videounshareddir)
+
+
+
+
 	with open(os.path.join(basedir,'justtouched.txt'), 'w') as myfile:
 		myfile.close()
 
@@ -1570,6 +2220,7 @@ if __name__ == "__main__":
 	
 	WebRequestHandler.gateway=o.getGateway()
 	WebRequestHandlerFlac.gateway=o.getGateway()
+	WebRequestHandlerVideo.gateway=o.getGateway()
 	
 	server = HTTPServerV6((ip, 55227), WebRequestHandler)
 	o.getGateway().set_webserver(server)
@@ -1579,15 +2230,20 @@ if __name__ == "__main__":
 	flacserver = HTTPServerV6((ip, 55228), WebRequestHandlerFlac)
 	flacWebserverThread = Thread(target = flacserver.serve_forever)
 
+	videoserver = HTTPServerV6((ip, 55229), WebRequestHandlerVideo)
+	videoWebserverThread = Thread(target = videoserver.serve_forever)
+
+
 	if len(sys.argv)==1:
 
 		WebserverThread.daemon = True
 		flacWebserverThread.daemon = True
-
+		videoWebserverThread.daemon = True
 
 	
 	flacWebserverThread.start()
 	WebserverThread.start()
+	videoWebserverThread.start()
 	print ("Webservers started")
 	
 	o.getGateway().banner_daemon = Thread(target = banner_daemon, args = (o.getGateway(),))
