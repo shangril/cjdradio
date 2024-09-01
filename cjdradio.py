@@ -1376,30 +1376,30 @@ class Handler:
 				datas=data.split("\n")
 				
 				if len(datas)==0: 
-					datas[0]="unavail"
+					datas.insert(0,"unavail")
 				
-					datas[1]="unavail"
+					datas.insert(1,"unavail")
 				
-					datas[2]="unavail"
+					datas.insert(2,"unavail")
 				
-					datas[3]="unavail"
+					datas.insert(3,"unavail")
 
 				if len(datas)==1: 
-					datas[1]="unavail"
+					datas.insert(1,"unavail")
 				
-					datas[2]="unavail"
+					datas.insert(2,"unavail")
 				
-					datas[3]="unavail"
+					datas.insert(3,"unavail")
 
 				if len(datas)==2: 
 				
-					datas[2]="unavail"
+					datas.insert(2,"unavail")
 				
-					datas[3]="unavail"
+					datas.insert(3,"unavail")
 
 				if len(datas)==3: 
 				
-					datas[3]="unavail"
+					datas.insert(3,"unavail")
 				
 				self.vtitles[v]=datas[0]
 				self.vcategories[v]=datas[1]
