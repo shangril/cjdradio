@@ -1340,6 +1340,7 @@ class Handler:
 		
 	def onVideoConnect(self, *args): 
 		station = b.get_object("cbvideostations").get_active_id()
+		b.get_object("cbvideos").remove_all()
 		self.vip = station
 		print ("retrieving video list from"+station)
 
@@ -1834,10 +1835,10 @@ class WebRequestHandlerVideo(BaseHTTPRequestHandler):
 				completed = False
 				while not completed:
 						mp4files=[]
-						files = os.scandir(os.path.join(basedir, "VideoShares"))
+						files = sorted(os.listdir(os.path.join(basedir, "VideoShares")))
 						for mp4 in files: 
-							if mp4.name.endswith(".mp4"):
-								mp4files.append(mp4.name)
+							if mp4.endswith(".mp4"):
+								mp4files.append(mp4)
 								
 						if len(mp4files)>0:
 							size = 0		
