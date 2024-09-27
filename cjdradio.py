@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 from time import sleep 
@@ -10,18 +10,18 @@ try:
 	from pytz import timezone
 except:
 	print ("Error importing pytz ! Try \"pip install pytz\"")
-	exit(0)
+	sys.exit(0)
 
 import sys
 import os
 
-
+"""
 try:
 	from tinytag import TinyTag
 except:
 	print ("Error importing TinyTag ! Try \"pip install tinytag\"")
-	exit(0)
-	
+	sys.exit(0)
+"""	
 try:
 	if len(sys.argv)==1: 
 		import vlc
@@ -92,20 +92,20 @@ def indexing_daemon(g):
 							tags = TinyTag.get(os.path.join(shareddir, mp3.name))
 						
 							with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
-								myfile.write("%s" % tags.artist)
-								myfile.close()
+								myfile.write(f"{tags.artist}")
+								
 						if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
 							tags = TinyTag.get(os.path.join(shareddir, mp3.name))
 						
 							with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
-								myfile.write("%s" % tags.album)
-								myfile.close()
+								myfile.write(f"{tags.album}")
+								
 						if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
 							tags = TinyTag.get(os.path.join(shareddir, mp3.name))
 						
 							with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
-								myfile.write("%s" % tags.title)
-								myfile.close()
+								myfile.write(f"{tags.title}")
+								
 				unshareddir=os.path.join(basedir, "Unshared")
 				if not os.path.exists(unshareddir):
 					os.makedirs(unshareddir)
@@ -116,20 +116,20 @@ def indexing_daemon(g):
 							tags = TinyTag.get(os.path.join(unshareddir, mp3.name))
 						
 							with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
-								myfile.write("%s" % tags.artist)
-								myfile.close()
+								myfile.write(f"{tags.artist}")
+								
 						if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
 							tags = TinyTag.get(os.path.join(unshareddir, mp3.name))
 						
 							with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
-								myfile.write("%s" % tags.album)
-								myfile.close()
+								myfile.write(f"{tags.album}")
+								
 						if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
 							tags = TinyTag.get(os.path.join(unshareddir, mp3.name))
 						
 							with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
-								myfile.write("%s" % tags.title)
-								myfile.close()
+								myfile.write(f"{tags.title}")
+								
 
 
 				dldir = os.path.join(basedir, "Downloads")
@@ -144,20 +144,20 @@ def indexing_daemon(g):
 								tags = TinyTag.get(os.path.join(shareddir, mp3.name))
 						
 								with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
-									myfile.write("%s" % tags.artist)
-									myfile.close()
+									myfile.write(f"{tags.artist}")
+									
 							if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
 								tags = TinyTag.get(os.path.join(shareddir, mp3.name))
 						
 								with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
-									myfile.write("%s" % tags.album)
-									myfile.close()
+									myfile.write(f"{tags.album}")
+									
 							if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
 								tags = TinyTag.get(os.path.join(shareddir, mp3.name))
 						
 								with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
-									myfile.write("%s" % tags.title)
-									myfile.close()
+									myfile.write(f"{tags.title}")
+									
 			else:
 				print("No <$HOME>/.cjdradio/Shares directory found. Aborting mp3 scanning")
 				os.makedirs(shareddir)
@@ -491,8 +491,8 @@ class Handler:
 		peersList+=ip+"\n"	
 				
 		with open(os.path.join(basedir,'settings_access_list.txt'), 'w') as myfile:
-			peersList=myfile.write("%s" % peersList)
-			myfile.close()
+			peersList=myfile.write(f"{peersList}")
+			
 		g.load_settings_from_disk()
 
 	def onDeleteAccess(self, *args): 
@@ -944,8 +944,8 @@ class Handler:
 
 							
 		with open(os.path.join(basedir,'settings_id.txt'), 'w') as myfile:
-			myfile.write("%s" % g.ID)
-			myfile.close()
+			myfile.write(f"{g.ID}")
+			
 			
 	def onSystemPlayer(self, *args):
 		print ("system player")
@@ -968,8 +968,8 @@ class Handler:
 				output+=os.path.join(unshare, file.name)+"\n"
 		
 		with open(playlistfile, 'w') as myfile:
-			myfile.write("%s" % output)
-			myfile.close()
+			myfile.write(f"{output}")
+			
 
 		
 		
@@ -1242,8 +1242,8 @@ class Handler:
 		peersList+=newIP+"\n"	
 				
 		with open(os.path.join(basedir,'settings_peersList.txt'), 'w') as myfile:
-			peersList=myfile.write("%s" % peersList)
-			myfile.close()
+			peersList=myfile.write(f"{peersList}")
+			
 		g.load_settings_from_disk()
 		
 	def onWebserverRestart(self, *args): 
@@ -1254,8 +1254,8 @@ class Handler:
 		
 			
 		with open(os.path.join(basedir,'settings_ip6addr.txt'), 'w') as myfile:
-			myfile.write("%s" % newIP)
-			myfile.close()
+			myfile.write(f"{newIP}")
+			
 			
 		g.load_settings_from_disk();
 		
@@ -2299,5 +2299,3 @@ if __name__ == "__main__":
 				newnewpeers.append(p)
 		
 		g.set_peers(g.peers+newnewpeers)
-
-		
