@@ -6,22 +6,15 @@ from time import sleep
 import random
 
 from datetime import datetime
-try: 
-	from pytz import timezone
-except:
-	print ("Error importing pytz ! Try \"pip install pytz\"")
-	sys.exit(0)
 
 import sys
 import os
 
-"""
 try:
 	from tinytag import TinyTag
 except:
 	print ("Error importing TinyTag ! Try \"pip install tinytag\"")
 	sys.exit(0)
-"""	
 try:
 	if len(sys.argv)==1: 
 		import vlc
