@@ -47,7 +47,7 @@
               <object class="GtkEntry" id="access_list_ip">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="placeholder-text" translatable="yes">CJDNS IPv6 to add</property>
+                <property name="placeholder-text" translatable="yes">IPv6 to add</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -145,7 +145,7 @@
                           <object class="GtkLabel">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="label" translatable="yes">Your tun0 interface IP: </property>
+                            <property name="label" translatable="yes">Your tun0/tun1 interface IP: </property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -198,7 +198,7 @@
                         <property name="margin-bottom">5</property>
                         <property name="label" translatable="yes">Tips: it is MANDATORY to set the above option. 
 Make sure port 55227 (audio), 55229 (video) and 55228 (flac share) are open, 
-for tun0 in your firewall to actually make things work. 
+for tun0 and/or tun1 in your firewall to actually make things work. 
 Your shared music is to be placed in $HOME/.cjdradio/Shares ; Unshared in same dir is for restricted access. 
 VideoShares is for mp4 video sharing. VideoUnshared for private videos. 
 Make sure to firstly Discover New Stations Peers before launching the listening. </property>

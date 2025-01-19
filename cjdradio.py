@@ -419,7 +419,7 @@ class Gateway:
 				if peer!='': 
 					self.builder.get_object("cb_initial_peers").append_text(peer)
 
-		
+			self.builder.get_object("cb_initial_peers").append_text("200:abce:8706:ea81:94:fcf4:e379:b988")
 			self.builder.get_object("cb_initial_peers").append_text("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
 			self.builder.get_object("cb_initial_peers").set_active(0)
 			
@@ -2168,8 +2168,8 @@ if __name__ == "__main__":
 	if len(sys.argv)>=2:
 		print ("One command line argument passed. Running in daemon mode without user interface")
 		
-		if len(sys.argv)!=6:
-			print ("Fatal error. Mandatory arguments missing.\n Try \"python cjdradio.py nogui <station tracker peer ip address> <path to MP3 shares folder> <station ID> <your tun0 interface ip>\"")
+		if len(sys.argv)<=4:
+			print ("Fatal error. Mandatory arguments missing.\n Try \"python cjdradio.py nogui <station tracker peer ip address> <path to MP3 shares folder> <station ID>") # <your tun0 interface ip> [your tun1 interface ip]\"")
 			exit(0)
 			
 		
@@ -2204,28 +2204,39 @@ if __name__ == "__main__":
 			
 		print ("UI started")
 	ip="::"
+	ip2="::"
 	
 	if o.getGateway().get_settings_ip6addr()!="::": 
 		o.getGateway().peers.append(o.getGateway().get_settings_ip6addr())
 		ip=o.getGateway().get_settings_ip6addr()
 	
-	if len(sys.argv)==6: 
+	#useless AFAIK
+	if len(sys.argv)>=6: 
 		ip = sys.argv[5]
+	if len(sys.argv)>=7:
+		ip2 = sys.argv[6]
+	
 	
 	WebRequestHandler.gateway=o.getGateway()
 	WebRequestHandlerFlac.gateway=o.getGateway()
 	WebRequestHandlerVideo.gateway=o.getGateway()
 	
-	server = HTTPServerV6((ip, 55227), WebRequestHandler)
+	server = HTTPServerV6(("", 55227), WebRequestHandler)
 	o.getGateway().set_webserver(server)
 	WebserverThread = Thread(target = server.serve_forever)
 	o.getGateway().set_webserverThread(WebserverThread)
 
-	flacserver = HTTPServerV6((ip, 55228), WebRequestHandlerFlac)
+	flacserver = HTTPServerV6(("", 55228), WebRequestHandlerFlac)
 	flacWebserverThread = Thread(target = flacserver.serve_forever)
 
-	videoserver = HTTPServerV6((ip, 55229), WebRequestHandlerVideo)
+	videoserver = HTTPServerV6(("", 55229), WebRequestHandlerVideo)
 	videoWebserverThread = Thread(target = videoserver.serve_forever)
+
+
+
+
+
+
 
 
 	if len(sys.argv)==1:
@@ -2271,7 +2282,7 @@ if __name__ == "__main__":
 	
 	
 						
-	if len(sys.argv)==6:
+	if len(sys.argv)>=6:
 		o.getGateway().settings_ip6addr=sys.argv[5]
 		print ("contacting initial peer")
 		g.registered = True
