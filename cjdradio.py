@@ -37,6 +37,11 @@ import requests
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import socket
 
+def touch(fname, times=None):
+    with open(fname, 'a'):
+        os.utime(fname, times)
+
+
 def tracker_update_daemon(g): 
 	while True: 
 		sleep(400)
@@ -284,6 +289,8 @@ class Cjdradio:
 
 
 class Gateway:
+	
+	tmplock = '';
 	
 	httpLock = 0
 	
@@ -1784,7 +1791,8 @@ class WebRequestHandlerVideo(BaseHTTPRequestHandler):
 			
 			if self.gateway.httpLock>5:
 				return
-			
+			touch (g.tmplock)
+
 			home = expanduser("~")
 			basedir=os.path.join(home, ".cjdradio")
 
@@ -1912,6 +1920,8 @@ class WebRequestHandlerVideo(BaseHTTPRequestHandler):
 
 
 		finally:
+			touch (g.tmplock)
+			os.unlink(g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
 
 
@@ -1925,7 +1935,8 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 			if self.gateway.httpLock>5:
 				return
 			
-				
+			touch (g.tmplock)
+	
 			home = expanduser("~")
 			basedir=os.path.join(home, ".cjdradio")
 
@@ -2007,6 +2018,8 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 							completed = True
 				self.wfile.write(reply.encode("utf-8"))
 		finally:
+			touch (g.tmplock)
+			os.unlink(g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
 			
 class WebRequestHandler(BaseHTTPRequestHandler):
@@ -2015,10 +2028,13 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
 
 		try:
+
 			self.gateway.httpLock=self.gateway.httpLock+1
 			
 			if self.gateway.httpLock>5:
 				return
+
+			touch (g.tmplock)
 		
 
 			home = expanduser("~")
@@ -2161,6 +2177,8 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 							completed = True
 				self.wfile.write(reply.encode("utf-8"))
 		finally:
+			touch (g.tmplock)
+			os.unlink(g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
 					
 					
@@ -2210,6 +2228,9 @@ if __name__ == "__main__":
 		o.getGateway().peers.append(o.getGateway().get_settings_ip6addr())
 		ip=o.getGateway().get_settings_ip6addr()
 	
+	tmplock = os.path.join(basedir, "cjdradio.lock")
+	
+	o.getGateway().tmplock = tmplock
 	#useless AFAIK
 	if len(sys.argv)>=6: 
 		ip = sys.argv[5]
