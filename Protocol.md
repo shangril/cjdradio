@@ -35,7 +35,8 @@ outputs the software name and version and an URL for code repository.
 
 *			if path=="/ping":
 Replies "pong"
-			if path=='/flac':
+
+*			if path=='/flac':
 Parameter: a .flac filename
 .
 Binary reply. The full .flac file requested. Max size 4GiB 				
