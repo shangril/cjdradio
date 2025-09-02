@@ -16,7 +16,7 @@ except:
 	print ("Error importing TinyTag ! Try \"pip install tinytag\"")
 	sys.exit(0)
 try:
-	if len(sys.argv)==1: 
+	if len(sys.argv)==1 or len(sys.argv)==3: 
 		import vlc
 except:
 	print ("Error importing python-vlc ! Try \"pip install python-vlc\"")
@@ -1741,7 +1741,9 @@ class internetRadio():
 					#lock.acquire()
 					
 					#try: 
-					self.g.get_builder().get_object("lasttuned").set_text(self.ip+"\n"+myid)
+					if len(sys.argv)==1: 
+						self.g.get_builder().get_object("lasttuned").set_text(self.ip+"\n"+myid)
+					print ("current station: "+self.ip+"\n"+myid)
 					#finally: 
 					#	lock.release()
 				try: 
@@ -2021,7 +2023,11 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 			touch (g.tmplock)
 			os.unlink(g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
-			
+
+class TUIDisplay: 
+	def set_text(self, text):
+		print(text)
+	
 class WebRequestHandler(BaseHTTPRequestHandler):
 	gateway = None
 		
@@ -2186,8 +2192,8 @@ if __name__ == "__main__":
 	if len(sys.argv)>=2:
 		print ("One command line argument passed. Running in daemon mode without user interface")
 		
-		if len(sys.argv)<=4:
-			print ("Fatal error. Mandatory arguments missing.\n Try \"python cjdradio.py nogui <station tracker peer ip address> <path to MP3 shares folder> <station ID>") # <your tun0 interface ip> [your tun1 interface ip]\"")
+		if len(sys.argv)==2:
+			print ("Fatal error. Mandatory arguments missing.\n Try \"python cjdradio.py nogui autoplay\"\n Or try \"python cjdradio.py nogui <station tracker peer ip address> <path to MP3 shares folder> <station ID>") # <your tun0 interface ip> [your tun1 interface ip]\"")
 			exit(0)
 			
 		
@@ -2273,7 +2279,7 @@ if __name__ == "__main__":
 	print ("Webservers started")
 	
 	o.getGateway().banner_daemon = Thread(target = banner_daemon, args = (o.getGateway(),))
-	if len(sys.argv)==1:
+	if len(sys.argv)==1 or len(sys.argv)==3:
 
 		o.getGateway().banner_daemon.daemon = True
 	
@@ -2300,10 +2306,66 @@ if __name__ == "__main__":
 	o.getGateway().pingthread = Thread( target = tracker_update_daemon, args = (o.getGateway(), ))
 	o.getGateway().pingthread.daemon = True
 	o.getGateway().pingthread.start()
-	
-	
+	if len(sys.argv)==3:
+		print ("contacting initial peer")
+		g.peers.append(g.get_settings_ip6addr())
+		ip=g.get_settings_ip6addr()
+		
+		newpeers = []
+		MyPeerList = []
+		if os.path.exists(os.path.join(basedir, "settings_peersList.txt")): 
+			with open(os.path.join(basedir,'settings_peersList.txt'), 'r') as myfile:
+				MyPeerList=myfile.read().split("\n")
+				myfile.close()
+		
+		dex=0;
+		MyPeerList.append("200:abce:8706:ea81:94:fcf4:e379:b988")
+		MyPeerList.append("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
+		
+		initialPeer = MyPeerList[dex]
+		
+		while dex < len(MyPeerList):
+		
+			try: 
+				print("trying to reach initial peer "+initialPeer)
+				newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers").split("\n")
+				dex=len(MyPeerList)
+			except: 
+				print("This initial peer is currently offline")
+				dex=dex+1
+		
+		newnewpeers = []
+		for p in newpeers:
+			if not p in g.peers: 
+				newnewpeers.append(p)
+		
+		g.set_peers(g.peers+newnewpeers)
+
+		# Launching playback
+		
+		ir = internetRadio(g, TUIDisplay(), True)			
+		g.radio = ir
+		ir.play()
+		
+		while True: 
+			input ("Press Enter to skip this song or [Ctrl+C] to quit\n")
+			print("Skipping")
+			if g.radio!=None:
+				print("found radio")
+				if g.radio.player.is_playing():
+					print("radio is playing")
+					g.radio.stop()
+					g.radio.play()
+				else:
+					g.radio.stop()
+					if not g.radio.threadPlay is None:
+						print ("radio is buffering")
+						g.radio.bufferingLock = False
+						g.radio.threadPlay.join(0)
+						g.radio.play()
+		
 						
-	if len(sys.argv)>=6:
+	elif len(sys.argv)>=6:
 		o.getGateway().settings_ip6addr=sys.argv[5]
 		print ("contacting initial peer")
 		g.registered = True
