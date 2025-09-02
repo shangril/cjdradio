@@ -30,6 +30,11 @@ You'll need to install Python>= 3.12.3, libvlc and PIP (python package installer
 * run the app
 
   python3 cjdradio.py
-* daemon mode
+  
+* tui-style playback
+
+  python3 cjdradio.py no-gui autoplay
+
+* daemon mode help screen
   
   python3 cjdradio.py no-gui
