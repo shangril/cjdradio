@@ -16,8 +16,8 @@ Cjdradio Network tab
 
 You'll need to install Python>= 3.12.3, libvlc and PIP (python package installer) through your usual software channels provided by your operating system. 
 
-* How to join a Cjdns network: 
-  please refer to https://cremroad.com/hyperboria
+* How to join a trusted overlay network: 
+  please refer to https://cremroad.com/hyperboria-yggdrasil
 
 * installation of dependencies
   
@@ -25,7 +25,10 @@ You'll need to install Python>= 3.12.3, libvlc and PIP (python package installer
 
   pip install tinytag
   
-  ** Note that externally managed environnements will require either a virtual environnement, the use of externally managed package provided by your distribution (like as an example python3-vlc and so on, if available) or, if you have no other choice, the use of --break-system-packages with Pip which is dangerous for your system install
+  ** Note that externally managed environnements will require either
+      - a virtual environnement
+      - the use of externally managed package provided by your distribution (like as an example python3-vlc and so on, if available)
+      - or, if you have no other choice, the use of --break-system-packages with Pip which is dangerous for your system install but actually safe if all you need is tinytag and your externally managed environnement hasn't it
   
 * run the app
 
