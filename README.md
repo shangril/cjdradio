@@ -27,11 +27,11 @@ You'll need to install Python>= 3.12.3, libvlc and PIP (python package installer
   
   ** Note that externally managed environnements will require either
 
-       a virtual environnement
+1) a virtual environnement, or
   
-       the use of externally managed package provided by your distribution (like as an example python3-vlc and so on, if available)
+2) the use of externally managed package provided by your distribution (like as an example python3-vlc and so on, if available)
 
-       or, if you have no other choice, the use of --break-system-packages with Pip which is dangerous for your system install but actually safe if all you need is tinytag and your externally managed environnement hasn't it
+3) or, if you have no other choice, the use of --break-system-packages with Pip which is dangerous for your system install but actually safe if all you need is tinytag and your externally managed environnement hasn't it
   
 * run the app
 
