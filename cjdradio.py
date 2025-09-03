@@ -62,10 +62,9 @@ def crawler_daemon(g):
 		print ("crawler: crawl finished. "+str(len(g.peers))+" peers currently known")
 		home = expanduser("~")
 		basedir=os.path.join(home, ".cjdradio")
-		if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
-			with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'w') as myfile:
-				peerFile="\n".join(g.peers)
-				myfile.write(f"{peerFile}")
+		with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'w') as myfile:
+			peerFile="\n".join(g.peers)
+			myfile.write(f"{peerFile}")
 		sleep(300)
 def tracker_update_daemon(g): 
 	while True: 
