@@ -1690,7 +1690,7 @@ class internetRadio():
 			while self.ip == '':
 				peer = ''
 				while peer=='' or peer in self.g.bannedStations or peer in self.g.blacklist:
-					while len(self.g.peers())==0:
+					while len(self.g.get_peers())==0:
 						sleep(6)
 					
 					tmpPeer = random.choice (self.g.peers)
