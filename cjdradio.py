@@ -246,7 +246,7 @@ def banner_daemon(g):
 			#	lock.release()
 			newpeers = []
 			
-			
+			MyPeerList=[]
 			
 			#g.peers.append(g.get_settings_ip6addr())
 			
