@@ -82,7 +82,7 @@ def tracker_update_daemon(g):
 			newpeers = OcsadURLRetriever.retrieveURL("http://["+g.get_Builder().get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
 		except: 
 			if len(sys.argv)==3: 
-					
+				MyPeerList=[]	
 			
 				home = expanduser("~")
 				basedir=os.path.join(home, ".cjdradio")
