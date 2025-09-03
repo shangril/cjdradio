@@ -1,41 +1,33 @@
 #!/usr/bin/env python3
 
-
 from time import sleep 
-
-import random
-
 from datetime import datetime
-
+import random
 import sys
 import os
+from os.path import expanduser
+from threading import Thread
+import urllib.request
+import requests
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+import socket
 
 try:
 	from tinytag import TinyTag
 except:
-	print ("Error importing TinyTag ! Try \"pip install tinytag\"")
+	print("""Error importing TinyTag ! Try "pip install tinytag" """)
 	sys.exit(0)
 try:
 	if len(sys.argv)==1 or len(sys.argv)==3: 
 		import vlc
 except:
-	print ("Error importing python-vlc ! Try \"pip install python-vlc\"")
+	print("""Error importing python-vlc ! Try "pip install python-vlc" """)
+
 if len(sys.argv)==1: 
 	import gi
 	gi.require_version('Gtk', '3.0')
 	from gi.repository import Gtk	
 
-from os.path import expanduser
-
-from threading import Thread
-
-import urllib.request
-
-import requests
-
-
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-import socket
 
 def touch(fname, times=None):
 	try: 
@@ -50,21 +42,22 @@ def crawler_daemon(g):
 		print ("crawler: crawl started")
 		for aPeer in g.peers: 
 			try: 		
-				crawledPeers = OcsadURLRetriever.retrieveURL("http://["+aPeer+"]:55227/listpeers", reqtimeout = 55).split("\n")
+				crawledPeers = OcsadURLRetriever.retrieveURL(f"http://[{+aPeer+}]:55227/listpeers", reqtimeout = 55).split("\n")
 				newnewpeers = []
 				for p in crawledPeers:
 					if not p in g.peers: 
 						newnewpeers.append(p)
-				print ("crawler: "+str(len(newnewpeers))+" newcomers peers discovered with "+aPeer)		
+				print (f"crawler: {len(newnewpeers)} newcomers peers discovered with {aPeer}")		
 				g.set_peers(g.peers+newnewpeers)
 			except: 
-				print("crawler: "+aPeer+" didn't reply upon network crawl")
-		print ("crawler: crawl finished. "+str(len(g.peers))+" peers currently known")
+				print(f"crawler: {aPeer} didn't reply upon network crawl")
+		print(f"crawler: crawl finished. {str(len(g.peers))} peers currently known")
 		home = expanduser("~")
 		basedir=os.path.join(home, ".cjdradio")
-		with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'w') as myfile:
-			peerFile="\n".join(g.peers)
-			myfile.write(f"{peerFile}")
+		if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
+			with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'w') as myfile:
+				peerFile="\n".join(g.peers)
+				myfile.write(f"{peerFile}")
 		sleep(300)
 def tracker_update_daemon(g): 
 	while True: 
@@ -79,7 +72,7 @@ def tracker_update_daemon(g):
 		g.peers.append(g.get_settings_ip6addr())
 
 		try: 
-			newpeers = OcsadURLRetriever.retrieveURL("http://["+g.get_Builder().get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
+			newpeers = OcsadURLRetriever.retrieveURL(f"http://[{g.get_Builder().get_object("cb_initial_peers").get_active_text()}]:55227/listpeers").split("\n")
 		except: 
 			if len(sys.argv)==3: 
 				MyPeerList=[]	
@@ -106,7 +99,7 @@ def tracker_update_daemon(g):
 					initialPeer = MyPeerList[dex]
 					try: 
 						print("trying to reach initial peer "+initialPeer)
-						newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers", reqtimeout = 30).split("\n")
+						newpeers = OcsadURLRetriever.retrieveURL(f"http://{initialPeer}]:55227/listpeers", reqtimeout = 30).split("\n")
 						dex=len(MyPeerList)
 					except: 
 						print("This initial peer is currently offline")
@@ -115,7 +108,7 @@ def tracker_update_daemon(g):
 				#		print("Unable to reach initial peer")
 			else: 
 				try: 
-					newpeers = OcsadURLRetriever.retrieveURL("http://["+sys.argv[2]+"]:55227/listpeers").split("\n")
+					newpeers = OcsadURLRetriever.retrieveURL(f"http://{+sys.argv[2]}:55227/listpeers").split("\n")
 				except: 
 					print("Unable to reach initial peer")
 					g.set_peers(bkp)
@@ -252,7 +245,7 @@ def banner_daemon(g):
 			
 			try: 
 				if len(sys.argv)==1: 
-					newpeers = OcsadURLRetriever.retrieveURL("http://["+b.get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers", reqtimeout = 30).split("\n")
+					newpeers = OcsadURLRetriever.retrieveURL(f"http://[{b.get_object("cb_initial_peers").get_active_text()}]:55227/listpeers", reqtimeout = 30).split("\n")
 				elif len(sys.argv)==3:
 					
 					home = expanduser("~")
@@ -276,8 +269,8 @@ def banner_daemon(g):
 						initialPeer = MyPeerList[dex]
 					
 						try: 
-							print("trying to reach initial peer "+initialPeer)
-							newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers", reqtimeout = 30).split("\n")
+							print("trying to reach initial peer ", initialPeer)
+							newpeers = OcsadURLRetriever.retrieveURL(f"http://[{initialPeer}]:55227/listpeers", reqtimeout = 30).split("\n")
 							dex=len(MyPeerList)
 						except: 
 							print("This initial peer is currently offline")
@@ -314,7 +307,7 @@ def banner_daemon(g):
 						#lock.acquire();
 						try: 
 							b.get_object("cbsinglestation").set_active(0)
-							b.get_object("discover_button").set_label("Discover new stations peers ("+str(len(g.peers))+")")
+							b.get_object("discover_button").set_label(f"Discover new stations peers ({len(g.peers)})")
 						finally: 
 							#lock.release()
 							print("Banner daemon updated Discover New Station Peers")
@@ -331,9 +324,9 @@ def banner_daemon(g):
 			if p!='':
 				try: 
 					pong = ''
-					pong = OcsadURLRetriever.retrieveURL("http://["+p+"]:55227/ping",  max_length = 120000, reqtimeout = 8)
+					pong = OcsadURLRetriever.retrieveURL(f"http://[{p}]:55227/ping",  max_length = 120000, reqtimeout = 8)
 					if pong!='pong':
-						raise ValueError("no replying peer "+p+" on ping request")
+						raise ValueError(f"no replying peer {p} on ping request")
 				except: 
 					newBanned.append(p)
 		#lock = threading.Lock()		
@@ -2504,7 +2497,7 @@ if __name__ == "__main__":
 				print ("available commands: help, peers, wall <message to any connected client's console>, blockwall <ip>")
 			elif inp.startswith("wall"): 
 				for pe in g.get_peers(): 
-					if pe != "":
+					if g != "":
 						OcsadURLRetriever.retrieveURL("http://["+pe+"]:55227/wall?"+urllib.parse.quote(inp ,safe=''))
 			elif inp.startswith("blockwall"): 
 				print ("this feature is awaiting an implementation")
