@@ -69,7 +69,7 @@ def tracker_update_daemon(g):
 		sleep(400)
 		g.registered = True
 		g.set_processedPeers([])
-		#g.set_peers([])
+		g.set_peers([])
 
 		newpeers = []
 
@@ -236,7 +236,7 @@ def banner_daemon(g):
 			#lock = threading.Lock()
 			#lock.acquire();
 			#try:
-			# g.set_peers([])
+			g.set_peers([])
 			#finally: 
 			#	lock.release()
 			newpeers = []
