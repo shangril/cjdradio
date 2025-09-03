@@ -99,7 +99,7 @@ def tracker_update_daemon(g):
 					initialPeer = MyPeerList[dex]
 					try: 
 						print("trying to reach initial peer "+initialPeer)
-						newpeers = OcsadURLRetriever.retrieveURL(f"http://{initialPeer}]:55227/listpeers", reqtimeout = 30).split("\n")
+						newpeers = OcsadURLRetriever.retrieveURL(f"http://[{initialPeer}]:55227/listpeers", reqtimeout = 30).split("\n")
 						dex=len(MyPeerList)
 					except: 
 						print("This initial peer is currently offline")
@@ -108,7 +108,7 @@ def tracker_update_daemon(g):
 				#		print("Unable to reach initial peer")
 			else: 
 				try: 
-					newpeers = OcsadURLRetriever.retrieveURL(f"http://{+sys.argv[2]}:55227/listpeers").split("\n")
+					newpeers = OcsadURLRetriever.retrieveURL(f"http://[{+sys.argv[2]}]:55227/listpeers").split("\n")
 				except: 
 					print("Unable to reach initial peer")
 					g.set_peers(bkp)
