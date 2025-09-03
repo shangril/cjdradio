@@ -2034,7 +2034,10 @@ class WebRequestHandlerVideo(BaseHTTPRequestHandler):
 
 		finally:
 			touch (g.tmplock)
-			os.unlink(g.tmplock)
+			try:
+				os.unlink(g.tmplock)
+			except: 
+				print ("unable to unlink "+g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
 
 
@@ -2132,7 +2135,10 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 				self.wfile.write(reply.encode("utf-8"))
 		finally:
 			touch (g.tmplock)
-			os.unlink(g.tmplock)
+			try:
+				os.unlink(g.tmplock)
+			except: 
+				print ("unable to unlink "+g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
 
 class TUIDisplay: 
@@ -2296,7 +2302,10 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 				self.wfile.write(reply.encode("utf-8"))
 		finally:
 			touch (g.tmplock)
-			os.unlink(g.tmplock)
+			try:
+				os.unlink(g.tmplock)
+			except: 
+				print ("unable to unlink "+g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
 					
 					
