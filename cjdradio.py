@@ -42,7 +42,7 @@ def crawler_daemon(g):
 		print ("crawler: crawl started")
 		for aPeer in g.peers: 
 			try: 		
-				crawledPeers = OcsadURLRetriever.retrieveURL(f"http://[{+aPeer+}]:55227/listpeers", reqtimeout = 55).split("\n")
+				crawledPeers = OcsadURLRetriever.retrieveURL(f"http://[{aPeer}]:55227/listpeers", reqtimeout = 55).split("\n")
 				newnewpeers = []
 				for p in crawledPeers:
 					if not p in g.peers: 
