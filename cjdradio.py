@@ -324,6 +324,7 @@ def banner_daemon(g):
 			except: 
 				print ("Initial peer not responding")
 				g.set_peers(bkp)
+				raise
 				
 		#then we can retest each banned peer to see if it pong and if so remove it from banned
 		newBanned = []
@@ -2256,6 +2257,8 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 							reply+="No mp3 found, sorry!"
 							completed = True
 				self.wfile.write(reply.encode("utf-8"))
+			if path=='/wall':
+				print("WALL "+self.client_address[0]+": "+os.path.basename(urllib.parse.unquote(query)))
 			if path=='/mp3':
 				print (query)
 				basename = os.path.basename(urllib.parse.unquote(query))
@@ -2499,7 +2502,14 @@ if __name__ == "__main__":
 					g.radio.stop()
 				break
 			if inp == "help":	
-				print ("available commands: help")
+				print ("available commands: help, peers, wall <message to any connected client's console>, blockwall <ip>")
+			elif inp.startswith("wall"): 
+				for pe in g.get_peers(): 
+					 OcsadURLRetriever.retrieveURL("http://["+pe+"]:55227/wall?"+urllib.parse.quote(inp ,safe=''))
+			elif inp.startswith("blockwall"): 
+				print ("this feature is awaiting an implementation")
+			elif inp == "peers":
+				print (g.get_peers())
 			elif inp == "": 
 				print("Skipping")
 				if g.radio!=None:
