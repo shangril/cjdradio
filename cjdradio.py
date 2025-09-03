@@ -2258,7 +2258,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 							completed = True
 				self.wfile.write(reply.encode("utf-8"))
 			if path=='/wall':
-				print("WALL "+self.client_address[0]+": "+os.path.basename(urllib.parse.unquote(query)))
+				print("WALL "+self.client_address[0]+": "+os.path.basename(urllib.parse.unquote(query))[0:197]
 			if path=='/mp3':
 				print (query)
 				basename = os.path.basename(urllib.parse.unquote(query))
