@@ -41,7 +41,29 @@ def touch(fname, times=None):
     with open(fname, 'a'):
         os.utime(fname, times)
 
-
+def crawler_daemon(g): 
+	while True: 
+		sleep(45)
+		print ("crawler: crawl started")
+		for aPeer in g.peers: 
+			try: 		
+				crawledPeers = OcsadURLRetriever.retrieveURL("http://["+aPeer+"]:55227/listpeers", reqtimeout = 55).split("\n")
+				newnewpeers = []
+				for p in crawledPeers:
+					if not p in g.peers: 
+						newnewpeers.append(p)
+				print ("crawler: "+str(len(newnewpeers))+" newcomers peers discovered with "+aPeer)		
+				g.set_peers(g.peers+newnewpeers)
+			except: 
+				print("crawler: "+aPeer+" didn't reply upon network crawl")
+		print ("crawler: crawl finished. "+str(len(g.peers))+" peers currently known")
+		home = expanduser("~")
+		basedir=os.path.join(home, ".cjdradio")
+		if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
+			with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'w') as myfile:
+				peerFile="\n".join(g.peers)
+				myfile.write(f"{peerFile}")
+		sleep(300)
 def tracker_update_daemon(g): 
 	while True: 
 		sleep(400)
@@ -54,9 +76,9 @@ def tracker_update_daemon(g):
 		g.peers.append(g.get_settings_ip6addr())
 
 		try: 
-			newpeers = OcsadURLRetriever.retrieveURL("http://["+g.getBuilder().get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
+			newpeers = OcsadURLRetriever.retrieveURL("http://["+g.get_Builder().get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers").split("\n")
 		except: 
-			if len(argv)==3: 
+			if len(sys.argv)==3: 
 					
 				try:
 					home = expanduser("~")
@@ -70,13 +92,18 @@ def tracker_update_daemon(g):
 					MyPeerList.append("200:abce:8706:ea81:94:fcf4:e379:b988")
 					MyPeerList.append("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
 					
-					initialPeer = MyPeerList[dex]
+					
+					if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
+						with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'r') as myfile:
+							MyPeerList=MyPeerList+myfile.read().split("\n")
+							myfile.close()
+					
 					
 					while dex < len(MyPeerList):
-					
+						initialPeer = MyPeerList[dex]
 						try: 
 							print("trying to reach initial peer "+initialPeer)
-							newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers").split("\n")
+							newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers", reqtimeout = 30).split("\n")
 							dex=len(MyPeerList)
 						except: 
 							print("This initial peer is currently offline")
@@ -198,7 +225,6 @@ def indexing_daemon(g):
 
 
 		sleep(300)
-
 def banner_daemon(g): 
 	import threading
 	while True:
@@ -217,12 +243,12 @@ def banner_daemon(g):
 			
 			
 			
-			g.peers.append(g.get_settings_ip6addr())
+			#g.peers.append(g.get_settings_ip6addr())
 			
 			try: 
-				if len(argv)==1: 
+				if len(sys.argv)==1: 
 					newpeers = OcsadURLRetriever.retrieveURL("http://["+b.get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers", reqtimeout = 30).split("\n")
-				elif len(argv)==3:
+				elif len(sys.argv)==3:
 					
 					home = expanduser("~")
 					basedir=os.path.join(home, ".cjdradio")
@@ -235,13 +261,18 @@ def banner_daemon(g):
 					MyPeerList.append("200:abce:8706:ea81:94:fcf4:e379:b988")
 					MyPeerList.append("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
 					
-					initialPeer = MyPeerList[dex]
+								
+					if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
+						with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'r') as myfile:
+							MyPeerList=MyPeerList+myfile.read().split("\n")
+							myfile.close()
 					
 					while dex < len(MyPeerList):
+						initialPeer = MyPeerList[dex]
 					
 						try: 
 							print("trying to reach initial peer "+initialPeer)
-							newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers").split("\n")
+							newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers", reqtimeout = 30).split("\n")
 							dex=len(MyPeerList)
 						except: 
 							print("This initial peer is currently offline")
@@ -367,6 +398,8 @@ class Gateway:
 	
 	webserver_thread = None
 	
+	crawler_thread = None
+	
 	bannerdaemon_thread = None
 	bannedStations = []
 	settings_ip6addr = "::"
@@ -379,6 +412,8 @@ class Gateway:
 	h = None
 	
 	cbsinglestationlock=False;
+
+
 
 	def set_processedPeers(self, peerList):
 		self.processedPeers=peerList
@@ -477,8 +512,22 @@ class Gateway:
 				if peer!='': 
 					self.builder.get_object("cb_initial_peers").append_text(peer)
 
+			secondPeerList=[]
+			
+			if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
+				with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'r') as myfile:
+					secondPeerList=myfile.read().split("\n")
+					myfile.close()
+				
 			self.builder.get_object("cb_initial_peers").append_text("200:abce:8706:ea81:94:fcf4:e379:b988")
 			self.builder.get_object("cb_initial_peers").append_text("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
+
+			for peer in secondPeerList:
+				if peer!='': 
+					self.builder.get_object("cb_initial_peers").append_text(peer)
+
+
+
 			self.builder.get_object("cb_initial_peers").set_active(0)
 			
 			
@@ -977,9 +1026,11 @@ class Handler:
 	def onDestroy(self, *args):
 		g.get_webserver().shutdown()
 		g.get_webserverThread().join(5)
+		
 		g.bannerdaemon_thread.join(1)
 		g.scanThread.join(1)
 		g.pingthread.join(1)
+		g.crawler_thread.join(1)
 		
 		print("Stopped web server, bannerdaemon, ping and scan threads")
 		Gtk.main_quit()
@@ -1660,7 +1711,12 @@ class internetRadio():
 
 						while g.cbsinglestationlock:
 							sleep (0.5)
-						self.g.get_builder().get_object("cbsinglestation").remove_all()
+						
+						if len(sys.argv) == 1:
+							self.g.get_builder().get_object("cbsinglestation").remove_all()
+						
+						
+						
 						for i in self.g.peers: 
 							if i not in self.g.bannedStations:
 								while g.cbsinglestationlock:
@@ -2078,6 +2134,7 @@ class WebRequestHandlerFlac(BaseHTTPRequestHandler):
 class TUIDisplay: 
 	def set_text(self, text):
 		print(text)
+		print ("Press Enter to skip current song, enter \"help\" to list available commands, or [Ctrl+C] to quit\n")
 	
 class WebRequestHandler(BaseHTTPRequestHandler):
 	gateway = None
@@ -2317,7 +2374,7 @@ if __name__ == "__main__":
 
 
 
-	if len(sys.argv)==1:
+	if len(sys.argv)==1 or len(sys.argv)==3:
 
 		WebserverThread.daemon = True
 		flacWebserverThread.daemon = True
@@ -2337,6 +2394,12 @@ if __name__ == "__main__":
 		o.getGateway().banner_daemon.start()
 	
 	print ("Banned stations daemon started")
+
+	o.getGateway().crawler_thread = Thread( target = crawler_daemon, args= (o.getGateway(), ))
+	o.getGateway().crawler_thread.daemon = True
+	o.getGateway().crawler_thread.start()
+	
+	print ("Crawler thread started")
 
 	home = expanduser("~")
 	basedir=os.path.join(home, ".cjdradio")
@@ -2364,22 +2427,31 @@ if __name__ == "__main__":
 		
 		newpeers = []
 		MyPeerList = []
+		
 		if os.path.exists(os.path.join(basedir, "settings_peersList.txt")): 
 			with open(os.path.join(basedir,'settings_peersList.txt'), 'r') as myfile:
 				MyPeerList=myfile.read().split("\n")
 				myfile.close()
-		
-		dex=0;
+
 		MyPeerList.append("200:abce:8706:ea81:94:fcf4:e379:b988")
 		MyPeerList.append("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
+
+		if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
+			with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'r') as myfile:
+				MyPeerList=MyPeerList+myfile.read().split("\n")
+				myfile.close()
 		
-		initialPeer = MyPeerList[dex]
+		dex=0;
+		
+		
 		
 		while dex < len(MyPeerList):
-		
+			initialPeer = MyPeerList[dex]
 			try: 
+				newpeers = []
 				print("trying to reach initial peer "+initialPeer)
 				newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers").split("\n")
+				print(str(len(newpeers))+" new peers added from "+initialPeer)
 				dex=len(MyPeerList)
 			except: 
 				print("This initial peer is currently offline")
@@ -2398,23 +2470,34 @@ if __name__ == "__main__":
 		g.radio = ir
 		ir.play()
 		
-		while True: 
-			input ("Press Enter to skip this song or [Ctrl+C] to quit\n")
-			print("Skipping")
-			if g.radio!=None:
-				print("found radio")
-				if g.radio.player.is_playing():
-					print("radio is playing")
-					g.radio.stop()
-					g.radio.play()
-				else:
-					g.radio.stop()
-					if not g.radio.threadPlay is None:
-						print ("radio is buffering")
-						g.radio.bufferingLock = False
-						g.radio.threadPlay.join(0)
-						g.radio.play()
+		tui=True
 		
+		while tui: 
+			try:
+				inp = input ("User input watcher watching…\n")
+			except: 
+				tui=False
+				if g.radio.player.is_playing(): 
+					g.radio.stop()
+				break
+			if inp == "help":	
+				print ("available commands: help")
+			elif inp == "": 
+				print("Skipping")
+				if g.radio!=None:
+					print("found radio")
+					if g.radio.player.is_playing():
+						print("radio is playing")
+						g.radio.stop()
+						g.radio.play()
+					else:
+						g.radio.stop()
+						if not g.radio.threadPlay is None:
+							print ("radio is buffering")
+							g.radio.bufferingLock = False
+							g.radio.threadPlay.join(0)
+							g.radio.play()
+			
 						
 	elif len(sys.argv)>=6:
 		o.getGateway().settings_ip6addr=sys.argv[5]
