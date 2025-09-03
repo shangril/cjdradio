@@ -2258,7 +2258,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 							completed = True
 				self.wfile.write(reply.encode("utf-8"))
 			if path=='/wall':
-				print("WALL "+self.client_address[0]+": "+os.path.basename(urllib.parse.unquote(query))[0:197]
+				print("WALL "+self.client_address[0]+": "+os.path.basename(urllib.parse.unquote(query))[0:197])
 			if path=='/mp3':
 				print (query)
 				basename = os.path.basename(urllib.parse.unquote(query))
@@ -2505,7 +2505,8 @@ if __name__ == "__main__":
 				print ("available commands: help, peers, wall <message to any connected client's console>, blockwall <ip>")
 			elif inp.startswith("wall"): 
 				for pe in g.get_peers(): 
-					 OcsadURLRetriever.retrieveURL("http://["+pe+"]:55227/wall?"+urllib.parse.quote(inp ,safe=''))
+					if g != "":
+						OcsadURLRetriever.retrieveURL("http://["+pe+"]:55227/wall?"+urllib.parse.quote(inp ,safe=''))
 			elif inp.startswith("blockwall"): 
 				print ("this feature is awaiting an implementation")
 			elif inp == "peers":
