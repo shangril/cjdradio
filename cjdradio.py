@@ -2504,7 +2504,7 @@ if __name__ == "__main__":
 				print ("available commands: help, peers, wall <message to any connected client's console>, blockwall <ip>")
 			elif inp.startswith("wall"): 
 				for pe in g.get_peers(): 
-					if g != "":
+					if pe != "":
 						OcsadURLRetriever.retrieveURL("http://["+pe+"]:55227/wall?"+urllib.parse.quote(inp ,safe=''))
 			elif inp.startswith("blockwall"): 
 				print ("this feature is awaiting an implementation")
