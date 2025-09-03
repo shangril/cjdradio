@@ -196,6 +196,9 @@ def banner_daemon(g):
 				if len(argv)==1: 
 					newpeers = OcsadURLRetriever.retrieveURL("http://["+b.get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers", reqtimeout = 30).split("\n")
 				elif len(argv)==3:
+					
+					home = expanduser("~")
+					basedir=os.path.join(home, ".cjdradio")
 					if os.path.exists(os.path.join(basedir, "settings_peersList.txt")): 
 						with open(os.path.join(basedir,'settings_peersList.txt'), 'r') as myfile:
 							MyPeerList=myfile.read().split("\n")
