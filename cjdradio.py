@@ -72,6 +72,7 @@ def tracker_update_daemon(g):
 		sleep(400)
 		g.registered = True
 		g.set_processedPeers([])
+		bkp = g.get_peers
 		g.set_peers([])
 
 		newpeers = []
@@ -118,6 +119,7 @@ def tracker_update_daemon(g):
 					newpeers = OcsadURLRetriever.retrieveURL("http://["+sys.argv[2]+"]:55227/listpeers").split("\n")
 				except: 
 					print("Unable to reach initial peer")
+					g.set_peers(bkp)
 		newnewpeers = []
 		for p in newpeers:
 			if not p in g.peers: 
@@ -239,6 +241,7 @@ def banner_daemon(g):
 			#lock = threading.Lock()
 			#lock.acquire();
 			#try:
+			bkp = g.get_peers()
 			g.set_peers([])
 			#finally: 
 			#	lock.release()
@@ -320,6 +323,7 @@ def banner_daemon(g):
 						g.cbsinglestationlock = False
 			except: 
 				print ("Initial peer not responding")
+				g.set_peers(bkp)
 				
 		#then we can retest each banned peer to see if it pong and if so remove it from banned
 		newBanned = []
