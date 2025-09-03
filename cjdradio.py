@@ -405,6 +405,7 @@ class Gateway:
 	settings_ip6addr = "::"
 	webserver = None
 	
+	plussed = {}
 	
 	processedPeers=[]
 	peers = []
@@ -414,7 +415,12 @@ class Gateway:
 	cbsinglestationlock=False;
 
 
-
+	def plus(self, ip):
+		if not ip in self.plussed:
+			self.plussed[ip]=0
+		self.plussed[ip]=self.plussed[ip]+1
+	def resetplus(self):
+		plussed = {}
 	def set_processedPeers(self, peerList):
 		self.processedPeers=peerList
 	def get_processedPeers(self):
@@ -1693,7 +1699,17 @@ class internetRadio():
 					while len(self.g.get_peers())==0:
 						sleep(6)
 					
-					tmpPeer = random.choice (self.g.peers)
+					localPeers = self.g.get_peers().copy()
+					
+					for p in self.g.get_peers():
+						if p in g.plussed:
+							dex=0;
+							while dex<g.plussed[p]:
+								localPeers.append(p)
+								dex=dex+1
+					
+										
+					tmpPeer = random.choice (localPeers)
 					try: 
 						pong = ''
 						pong = OcsadURLRetriever.retrieveURL("http://["+tmpPeer+"]:55227/ping",  max_length = 120000, reqtimeout = 8)
@@ -2497,7 +2513,7 @@ if __name__ == "__main__":
 					g.radio.stop()
 				break
 			if inp == "help":	
-				print ("available commands: help, peers, wall <message to any connected client's console>, blockwall <ip>")
+				print ("available commands: help, peers, wall <message to any connected client's console>, blockwall <ip>, \nplus, resetplus")
 			elif inp.startswith("wall"): 
 				for pe in g.get_peers(): 
 					if pe != "":
@@ -2506,6 +2522,12 @@ if __name__ == "__main__":
 				print ("this feature is awaiting an implementation")
 			elif inp == "peers":
 				print (g.get_peers())
+			elif inp == "plus": 
+				print ("plussing current station")
+				g.plus(g.radio.ip)
+				print (f"station {g.radio.ip} has now a score of {g.plussed[g.radio.ip]}")
+			elif inp == "resetplus":
+				g.resetplus() 
 			elif inp == "": 
 				print("Skipping")
 				if g.radio!=None:
