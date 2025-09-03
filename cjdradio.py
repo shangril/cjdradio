@@ -183,7 +183,7 @@ def banner_daemon(g):
 			#lock = threading.Lock()
 			#lock.acquire();
 			#try:
-			g.set_peers([])
+			# g.set_peers([])
 			#finally: 
 			#	lock.release()
 			newpeers = []
@@ -193,8 +193,29 @@ def banner_daemon(g):
 			g.peers.append(g.get_settings_ip6addr())
 			
 			try: 
-				newpeers = OcsadURLRetriever.retrieveURL("http://["+b.get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers", reqtimeout = 12).split("\n")
-
+				if len(argv)==1: 
+					newpeers = OcsadURLRetriever.retrieveURL("http://["+b.get_object("cb_initial_peers").get_active_text()+"]:55227/listpeers", reqtimeout = 30).split("\n")
+				elif len(argv)==3:
+					if os.path.exists(os.path.join(basedir, "settings_peersList.txt")): 
+						with open(os.path.join(basedir,'settings_peersList.txt'), 'r') as myfile:
+							MyPeerList=myfile.read().split("\n")
+							myfile.close()
+					
+					dex=0;
+					MyPeerList.append("200:abce:8706:ea81:94:fcf4:e379:b988")
+					MyPeerList.append("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
+					
+					initialPeer = MyPeerList[dex]
+					
+					while dex < len(MyPeerList):
+					
+						try: 
+							print("trying to reach initial peer "+initialPeer)
+							newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers").split("\n")
+							dex=len(MyPeerList)
+						except: 
+							print("This initial peer is currently offline")
+							dex=dex+1
 				newnewpeers = []
 				for p in newpeers:
 					if not p in g.peers: 
