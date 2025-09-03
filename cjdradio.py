@@ -83,36 +83,36 @@ def tracker_update_daemon(g):
 		except: 
 			if len(sys.argv)==3: 
 					
-				try:
-					home = expanduser("~")
-					basedir=os.path.join(home, ".cjdradio")
-					if os.path.exists(os.path.join(basedir, "settings_peersList.txt")): 
-						with open(os.path.join(basedir,'settings_peersList.txt'), 'r') as myfile:
-							MyPeerList=myfile.read().split("\n")
-							myfile.close()
-					
-					dex=0;
-					MyPeerList.append("200:abce:8706:ea81:94:fcf4:e379:b988")
-					MyPeerList.append("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
-					
-					
-					if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
-						with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'r') as myfile:
-							MyPeerList=MyPeerList+myfile.read().split("\n")
-							myfile.close()
-					
-					
-					while dex < len(MyPeerList):
-						initialPeer = MyPeerList[dex]
-						try: 
-							print("trying to reach initial peer "+initialPeer)
-							newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers", reqtimeout = 30).split("\n")
-							dex=len(MyPeerList)
-						except: 
-							print("This initial peer is currently offline")
-							dex=dex+1
-				except: 
-						print("Unable to reach initial peer")
+			
+				home = expanduser("~")
+				basedir=os.path.join(home, ".cjdradio")
+				if os.path.exists(os.path.join(basedir, "settings_peersList.txt")): 
+					with open(os.path.join(basedir,'settings_peersList.txt'), 'r') as myfile:
+						MyPeerList=myfile.read().split("\n")
+						myfile.close()
+				
+				dex=0;
+				MyPeerList.append("200:abce:8706:ea81:94:fcf4:e379:b988")
+				MyPeerList.append("fc71:fa3a:414d:fe82:f465:369b:141a:f8c")
+				
+				
+				if os.path.exists(os.path.join(basedir, "settings_crawledpeersList.txt")): 
+					with open(os.path.join(basedir,'settings_crawledpeersList.txt'), 'r') as myfile:
+						MyPeerList=MyPeerList+myfile.read().split("\n")
+						myfile.close()
+				
+				
+				while dex < len(MyPeerList):
+					initialPeer = MyPeerList[dex]
+					try: 
+						print("trying to reach initial peer "+initialPeer)
+						newpeers = OcsadURLRetriever.retrieveURL("http://["+initialPeer+"]:55227/listpeers", reqtimeout = 30).split("\n")
+						dex=len(MyPeerList)
+					except: 
+						print("This initial peer is currently offline")
+						dex=dex+1
+				#except: 
+				#		print("Unable to reach initial peer")
 			else: 
 				try: 
 					newpeers = OcsadURLRetriever.retrieveURL("http://["+sys.argv[2]+"]:55227/listpeers").split("\n")
