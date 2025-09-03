@@ -420,7 +420,7 @@ class Gateway:
 			self.plussed[ip]=0
 		self.plussed[ip]=self.plussed[ip]+1
 	def resetplus(self):
-		plussed = {}
+		self.plussed = {}
 	def set_processedPeers(self, peerList):
 		self.processedPeers=peerList
 	def get_processedPeers(self):
