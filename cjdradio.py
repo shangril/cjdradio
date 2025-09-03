@@ -1724,8 +1724,9 @@ class internetRadio():
 								
 								g.cbsinglestationlock = True
 								try: 
-									self.g.get_builder().get_object("cbsinglestation").append_text(i)
-									self.g.get_builder().get_object("cbsinglestation").set_active(0)
+									if len(sys.argv)==1:
+										self.g.get_builder().get_object("cbsinglestation").append_text(i)
+										self.g.get_builder().get_object("cbsinglestation").set_active(0)
 								finally: 
 									g.cbsinglestationlock = False	
 		else: 
