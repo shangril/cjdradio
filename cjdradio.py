@@ -108,7 +108,7 @@ def tracker_update_daemon(g):
 				#		print("Unable to reach initial peer")
 			else: 
 				try: 
-					newpeers = OcsadURLRetriever.retrieveURL(f"http://[{+sys.argv[2]}]:55227/listpeers").split("\n")
+					newpeers = OcsadURLRetriever.retrieveURL(f"http://[{sys.argv[2]}]:55227/listpeers").split("\n")
 				except: 
 					print("Unable to reach initial peer")
 					g.set_peers(bkp)
@@ -245,7 +245,7 @@ def banner_daemon(g):
 			
 			try: 
 				if len(sys.argv)==1: 
-					newpeers = OcsadURLRetriever.retrieveURL(f"http://[{b.get_object("cb_initial_peers").get_active_text()}]:55227/listpeers", reqtimeout = 30).split("\n")
+					newpeers = OcsadURLRetriever.retrieveURL(f"http://[{b.get_object('cb_initial_peers').get_active_text()}]:55227/listpeers", reqtimeout = 30).split("\n")
 				elif len(sys.argv)==3:
 					
 					home = expanduser("~")
