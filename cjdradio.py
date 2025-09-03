@@ -38,8 +38,11 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import socket
 
 def touch(fname, times=None):
-    with open(fname, 'a'):
-        os.utime(fname, times)
+	try: 
+		with open(fname, 'a'):
+			os.utime(fname, times)
+	except: 
+		print("unable to touch "+fname)
 
 def crawler_daemon(g): 
 	while True: 
@@ -2344,6 +2347,7 @@ if __name__ == "__main__":
 		ip=o.getGateway().get_settings_ip6addr()
 	
 	tmplock = os.path.join(basedir, "cjdradio.lock")
+
 	
 	o.getGateway().tmplock = tmplock
 	#useless AFAIK
