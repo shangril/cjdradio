@@ -450,7 +450,6 @@ class Gateway:
 	
 	def get_settings_ip6addr(self): 
 		return self.settings_ip6addr
-
 	def load_settings_from_disk(self):
 		home = expanduser("~")
 		basedir=os.path.join(home, ".cjdradio")
@@ -461,10 +460,9 @@ class Gateway:
 		if os.path.exists(os.path.join(basedir, "settings_ip6addr.txt")): 
 			#settings_ip6addr	
 			with open(os.path.join(basedir,'settings_ip6addr.txt'), 'r') as myfile:
-				self.settings_ip6addr=myfile.read()
+				self.settings_ip6addr=myfile.read().strip("\n\r")
 				myfile.close()
 				if len(sys.argv)==1:
-
 					self.builder.get_object("settings_ip6addr").set_text(self.settings_ip6addr)
 		if os.path.exists(os.path.join(basedir, "settings_blacklist.txt")): 
 			#settings_blacklist	
@@ -2453,6 +2451,10 @@ if __name__ == "__main__":
 	o.getGateway().pingthread.daemon = True
 	o.getGateway().pingthread.start()
 	if len(sys.argv)==3:
+		if g.get_settings_ip6addr=="" or g.get_settings_ip6addr=="::1": 
+			print ("Sorry, fatal error")
+			print ("Please set your tun interface IP address either in GUI tab named Network or in the ~/.cjdradio/settings_ip6addr.txt file")
+			exit()
 		print ("contacting initial peer")
 		g.peers.append(g.get_settings_ip6addr())
 		ip=g.get_settings_ip6addr()
