@@ -17,7 +17,7 @@ Cjdradio Network tab
 You'll need to install Python>= 3.12.3, libvlc and PIP (python package installer) through your usual software channels provided by your operating system. 
 
 * How to join a trusted overlay network: 
-  please refer to https://cremroad.com/hyperboria-yggdrasil
+  please refer to https://yggdrasil-network.github.io
 
 * installation of dependencies
   
