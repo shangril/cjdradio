@@ -336,6 +336,33 @@ def banner_daemon(g):
 		#finally: 
 		#	lock.release()
 		
+class Podcaster:
+	g = None
+	
+	description = ""
+	
+	logo = ""
+	coversfile = ""
+	coversdir = ""
+	
+	donation_name = ""
+	donation_url = ""
+	donation_addy = ""
+	
+	proxy_url = None
+	
+	def init(self, gateway, description, logo, coversfile, coversdir, donation_name, donation_url, donation_addy, proxy_url=None):
+		self.g=gateway
+		self.description = description
+		self.logo = logo
+		self.coversfile = coversfile
+		self.coversdir =  coversdir
+		self.donation_name = donation_name
+		self.donation_url = donation_url
+		self.donation_addy = donation_addy
+		self.proxy_url = proxy_url
+		
+		
 class Cjdradio:
 	g = None;
 	h = None;
@@ -380,6 +407,9 @@ class Gateway:
 	bannedArtists=[]
 	blacklist = []
 
+	podcast = False
+	podcaster = None
+	
 	accessList = []
 
 	dling = False;
@@ -2190,6 +2220,8 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 					self.send_header("Content-Type", "audio/mpeg")
 				if path=="/flac":
 					self.send_header("Content-Type", "audio/flac")
+				if path=="/podcast":
+					self.send_header("Content-Type", "application/rss+xml; charset=utf-8")
 			self.end_headers()
 			reply="Cjdradio\n"
 			reply=reply+"Version: 0.3\n"
@@ -2316,6 +2348,13 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 							reply=""
 							completed = True
 				self.wfile.write(reply.encode("utf-8"))
+			if path=="/haspodcast":
+				if g.podcast:
+					reply="1"
+					self.wfile.write(reply.encode("utf-8"))
+			if path=="/podcast":
+				reply = OcsadURLRetriever.retrieveURL(g.proxy_url+query)
+				self.wfile.write(reply.encode("utf-8"))
 		finally:
 			touch (g.tmplock)
 			try:
@@ -2330,7 +2369,10 @@ if __name__ == "__main__":
 		print ("One command line argument passed. Running in daemon mode without user interface")
 		
 		if len(sys.argv)==2:
-			print ("Fatal error. Mandatory arguments missing.\n Try \"python cjdradio.py nogui autoplay\"\n Or try \"python cjdradio.py nogui <station tracker peer ip address> <path to MP3 shares folder> <station ID>") # <your tun0 interface ip> [your tun1 interface ip]\"")
+			print ("Fatal error. Mandatory arguments missing.\n Try \"python cjdradio.py nogui autoplay\"\n Or try \"python cjdradio.py nogui <station tracker peer ip address> <path to MP3 shares folder> <station ID> <your tun interface ip> [podcast podcast_to_be_proxified_http_url]\"")
+			print ("The podcast option enables podcasts")
+			print ("The last option is a temporary debug option and will be removed once Cjdradio will be able to provide its own podcast feeds")
+			print ("The proxified podcast url MUST support the ?artist=<some artist name> http GET parameter")
 			exit(0)
 			
 		
@@ -2548,6 +2590,12 @@ if __name__ == "__main__":
 			
 						
 	elif len(sys.argv)>=6:
+		
+		if len(sys.argv)==8:
+			g.podcast = True
+			g.podcaster = Podcaster(g, Null, Null, Null, Null, Null, Null, Null, sys.argv[7])
+		
+		
 		o.getGateway().settings_ip6addr=sys.argv[5]
 		print ("contacting initial peer")
 		g.registered = True
@@ -2568,3 +2616,8 @@ if __name__ == "__main__":
 				newnewpeers.append(p)
 		
 		g.set_peers(g.peers+newnewpeers)
+		
+		if len(sys.argv)==8:
+			g.podcast = True
+			g.podcaster = Podcaster(g, None, None, None, None, None, None, None, sys.argv[7])
+			
