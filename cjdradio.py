@@ -2353,7 +2353,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 					reply="1"
 					self.wfile.write(reply.encode("utf-8"))
 			if path=="/podcast":
-				reply = OcsadURLRetriever.retrieveURL(g.podcaster.proxy_url+query)
+				reply = OcsadURLRetriever.retrieveURL(g.podcaster.proxy_url+"?"+query, 128000, 8000)
 				self.wfile.write(reply.encode("utf-8"))
 		finally:
 			touch (g.tmplock)
