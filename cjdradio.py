@@ -2591,9 +2591,7 @@ if __name__ == "__main__":
 						
 	elif len(sys.argv)>=6:
 		
-		if len(sys.argv)==8:
-			g.podcast = True
-			g.podcaster = Podcaster(g, Null, Null, Null, Null, Null, Null, Null, sys.argv[7])
+
 		
 		
 		o.getGateway().settings_ip6addr=sys.argv[5]
