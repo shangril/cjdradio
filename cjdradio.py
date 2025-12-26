@@ -351,7 +351,7 @@ class Podcaster:
 	
 	proxy_url = None
 	
-	def init(self, gateway, description, logo, coversfile, coversdir, donation_name, donation_url, donation_addy, proxy_url=None):
+	def __init__(self, gateway, description, logo, coversfile, coversdir, donation_name, donation_url, donation_addy, proxy_url=None):
 		self.g=gateway
 		self.description = description
 		self.logo = logo
