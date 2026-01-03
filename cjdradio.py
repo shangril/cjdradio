@@ -11,6 +11,7 @@ import urllib.request
 import requests
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import socket
+from email.utils import formatdate
 
 try:
 	from tinytag import TinyTag
@@ -122,6 +123,10 @@ def tracker_update_daemon(g):
 
 def indexing_daemon(g): 
 	while True: 
+
+		basedir=os.path.join(home, ".cjdradio")
+
+
 		if os.path.isdir(basedir):
 			#import threading
 			#lock = threading.Lock()
@@ -154,6 +159,13 @@ def indexing_daemon(g):
 						
 							with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
 								myfile.write(f"{tags.title}")
+
+						if not os.path.exists(os.path.join(datadir, mp3.name+".duration.txt")):
+							tags = TinyTag.get(os.path.join(shareddir, mp3.name))
+#							print (str(tags.duration))
+							with open(os.path.join(datadir,mp3.name+'.duration.txt'), 'w') as myfile:
+								myfile.write(f"{str(tags.duration)}")
+
 								
 				unshareddir=os.path.join(basedir, "Unshared")
 				if not os.path.exists(unshareddir):
@@ -178,6 +190,7 @@ def indexing_daemon(g):
 						
 							with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
 								myfile.write(f"{tags.title}")
+						
 								
 
 
@@ -206,6 +219,8 @@ def indexing_daemon(g):
 						
 								with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
 									myfile.write(f"{tags.title}")
+							
+						
 									
 			else:
 				print("No <$HOME>/.cjdradio/Shares directory found. Aborting mp3 scanning")
@@ -2353,8 +2368,124 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 					reply="1"
 					self.wfile.write(reply.encode("utf-8"))
 			if path=="/podcast":
-				reply = OcsadURLRetriever.retrieveURL(g.podcaster.proxy_url+"?"+query, 128000000, 8000)
-				self.wfile.write(reply.encode("utf-8"))
+				#reply = OcsadURLRetriever.retrieveURL(g.podcaster.proxy_url+"?"+query, 128000000, 8000)
+				#self.wfile.write(reply.encode("utf-8"))
+				querystring = ""
+				if query != "":
+					querystring="?"+query
+		
+				link = """http://["""+g.get_settings_ip6addr()+"""]:55227/podcast"""+querystring
+				
+				shareddir = g.shared_dir 
+				datadir = os.path.join(basedir, "MetadataShares")
+				files = os.scandir(shareddir)
+				title = None
+				album = None
+				artist = None
+				file = None
+				duration = None
+				albindex={}
+				artindex={}
+				i=1
+				files = os.scandir(shareddir)
+				for mp3 in files: 
+					if mp3.name.endswith(".mp3"):
+						album = None
+						while album is None:
+							if os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
+								with open(os.path.join(datadir,mp3.name+'.album.txt'), 'r') as myfile:
+									album=myfile.read()		
+							#tag scanner hasn't still processed this file, sleeping
+							else:
+								sleep(5)
+						if not album in albindex:
+							albindex[album]=i
+							i=i+1
+						
+				whitelist = None
+				if os.path.exists(os.path.join(basedir, "podcast-artists-whitelist.txt")):
+								with open(os.path.join(basedir,'podcast-artists-whitelist.txt'), 'r') as myfile:
+									whitelist=myfile.read().strip("\n").split("\n")		
+				else:
+					print ("No podcast-artist-whitelist.txt defined in "+basedir)		
+				files = os.scandir(shareddir)
+				for mp3 in files: 
+					if mp3.name.endswith(".mp3"):
+						artist = None
+						while artist is None:
+							if os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
+								with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'r') as myfile:
+									artist=myfile.read()		
+							#tag scanner hasn't still processed this file, sleeping
+							else:
+								sleep(5)
+						if not artist is None:
+							artindex[artist]=artist
+				files = os.scandir(shareddir)
+				chantitle=g.ID
+				if query!='':
+					chantitle=urllib.parse.unquote_plus(query.replace('artist=', ''))
+				pod="""<?xml version="1.0" encoding="UTF-8"?>
+				<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0" version="2.0">
+				<channel>
+					<title><![CDATA["""+chantitle+"""]]></title>
+					<itunes:category text="Music"/>
+					<description><![CDATA["""+g.ID+"""]]></description>
+					<itunes:author><![CDATA["""+g.ID+"""]]></itunes:author>
+					<link>"""+link+"""</link>
+				"""
+				if query=='' and len(artindex)>0:
+					pod=pod+"<podcast:podroll>"
+					for art in artindex:
+						if whitelist is None or (whitelist is not None and art in whitelist):
+							pod=pod+"""
+							<podcast:remoteItem feedUrl=\""""+link+'?artist='+urllib.parse.quote(art)+"""\"/>
+							"""
+					pod=pod+"</podcast:podroll>"
+				for mp3 in files: 
+					if mp3.name.endswith(".mp3"):
+						title = None
+						album = None
+						artist = None
+						file = None
+						duration = None
+						while title is None or album is None or artist is None or file is None or duration is None:
+			
+							if os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
+								with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'r') as myfile:
+									artist=myfile.read()
+							if os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
+								with open(os.path.join(datadir,mp3.name+'.album.txt'), 'r') as myfile:
+									album=myfile.read()		
+							if os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
+								with open(os.path.join(datadir,mp3.name+'.title.txt'), 'r') as myfile:
+									title=myfile.read()
+							if os.path.exists(os.path.join(datadir, mp3.name+".duration.txt")):
+								with open(os.path.join(datadir,mp3.name+'.duration.txt'), 'r') as myfile:
+									duration=myfile.read()
+							file = mp3.name
+					
+							#tag scanner hasn't still processed this file, sleeping
+							if title is None or album is None or artist is None or file is None or duration is None:
+								sleep(5)
+						if query=='' or (artist==urllib.parse.unquote_plus(query.replace('artist=', ''))):
+							pod = pod + """<item>
+							<title><![CDATA["""+title+"""]]></title>
+							<podcast:season name=\""""+album.replace('"', '&quot;').replace("&","&amp;")[0:127]+"""\">"""+str(albindex[album])+"""</podcast:season>
+							<enclosure url="http://["""+g.settings_ip6addr+"""]:55227/mp3?"""+urllib.parse.quote(file)+""""
+							 length=\""""+str(os.path.getsize(os.path.join(shareddir, file)))+"""\"
+							 type="audio/mpeg"/>
+							 <guid>"""+urllib.parse.quote(artist)+'_'+urllib.parse.quote(album)+'_'+urllib.parse.quote(title)+'_'+"""</guid>
+							 <link><![CDATA[http://["""+g.settings_ip6addr+"""]:55227/mp3?"""+urllib.parse.quote(file)+"""]]></link>
+							 <pubDate>"""+formatdate(os.path.getmtime(os.path.join(shareddir, file)))+"""</pubDate>
+							 <itunes:duration>"""+duration+"""</itunes:duration>
+							 <!--<itunes:image href=""/>-->	
+							</item>
+							"""
+				
+				pod = pod+"</channel></rss>"
+				self.wfile.write(pod.encode("utf-8"))
+			
 		finally:
 			touch (g.tmplock)
 			try:
@@ -2363,6 +2494,7 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 				print ("unable to unlink "+g.tmplock)
 			self.gateway.httpLock=self.gateway.httpLock-1
 					
+
 					
 if __name__ == "__main__":
 	if len(sys.argv)>=2:
@@ -2477,7 +2609,7 @@ if __name__ == "__main__":
 	basedir=os.path.join(home, ".cjdradio")
 
 	
-	if len(sys.argv)==6:
+	if len(sys.argv)>=6:
 		g.shared_dir = sys.argv[3]	
 		print ("Scanning "+sys.argv[3]+" directory for mp3 tags")
 		g.ID=sys.argv[4]
