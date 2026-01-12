@@ -146,129 +146,136 @@ def indexing_daemon(g):
 			#finally:
 			#	lock.release()
 			if os.path.isdir(shareddir):
-				datadir = os.path.join(basedir, "MetadataShares")
-				if not os.path.isdir(datadir):
-					os.makedirs(datadir)
-				files = os.scandir(shareddir)
-				for mp3 in files: 
-					if mp3.name.endswith(".mp3"):
-
-						tags = TinyTag.get(os.path.join(shareddir, mp3.name))
-
-
-						if not os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
-								myfile.write(f"{tags.artist}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
-								myfile.write(f"{tags.album}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
-								myfile.write(f"{tags.title}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".track.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.track.txt'), 'w') as myfile:
-								myfile.write(f"{tags.track}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".genre.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.genre.txt'), 'w') as myfile:
-								myfile.write(f"{tags.genre}")
-
-						if not os.path.exists(os.path.join(datadir, mp3.name+".year.txt")):
-							with open(os.path.join(datadir,mp3.name+'.year.txt'), 'w') as myfile:
-								raw_year = tags.year 
-								clean_year = raw_year[:4] if raw_year else ''
-								myfile.write(f"{clean_year}")
-
-						if not os.path.exists(os.path.join(datadir, mp3.name+".duration.txt")):
-							with open(os.path.join(datadir,mp3.name+'.duration.txt'), 'w') as myfile:
-								myfile.write(f"{str(tags.duration)}")
-
-						if not os.path.exists(os.path.join(datadir, mp3.name+".comment.txt")):
-							with open(os.path.join(datadir,mp3.name+'.comment.txt'), 'w') as myfile:
-								myfile.write(f"{str(tags.comment)}")
-								
-				unshareddir=os.path.join(basedir, "Unshared")
-				if not os.path.exists(unshareddir):
-					os.makedirs(unshareddir)
-				files = os.scandir(unshareddir)
-				for mp3 in files: 
-					if mp3.name.endswith(".mp3"):
-						tags = TinyTag.get(os.path.join(unshareddir, mp3.name))
-
-						if not os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
-								myfile.write(f"{tags.artist}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
-								myfile.write(f"{tags.album}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
-								myfile.write(f"{tags.title}")
-
-						if not os.path.exists(os.path.join(datadir, mp3.name+".track.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.track.txt'), 'w') as myfile:
-								myfile.write(f"{tags.track}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".genre.txt")):
-						
-							with open(os.path.join(datadir,mp3.name+'.genre.txt'), 'w') as myfile:
-								myfile.write(f"{tags.genre}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".year.txt")):
-							with open(os.path.join(datadir,mp3.name+'.year.txt'), 'w') as myfile:
-								raw_year = tags.year 
-								clean_year = raw_year[:4] if raw_year else ''
-								myfile.write(f"{clean_year}")
-
-						if not os.path.exists(os.path.join(datadir, mp3.name+".duration.txt")):
-							with open(os.path.join(datadir,mp3.name+'.duration.txt'), 'w') as myfile:
-								myfile.write(f"{str(tags.duration)}")
-								
-						if not os.path.exists(os.path.join(datadir, mp3.name+".comment.txt")):
-							with open(os.path.join(datadir,mp3.name+'.comment.txt'), 'w') as myfile:
-								myfile.write(f"{str(tags.comment)}")
-								
-
-
-				dldir = os.path.join(basedir, "Downloads")
-				if os.path.isdir(dldir):
-					datadir = os.path.join(basedir, "MetadataDownloads")
+					datadir = os.path.join(basedir, "MetadataShares")
 					if not os.path.isdir(datadir):
 						os.makedirs(datadir)
-					files = os.scandir(dldir)
+					files = os.scandir(shareddir)
 					for mp3 in files: 
 						if mp3.name.endswith(".mp3"):
-							if not os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
+							try:
 								tags = TinyTag.get(os.path.join(shareddir, mp3.name))
-						
-								with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
-									myfile.write(f"{tags.artist}")
-									
-							if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
-								tags = TinyTag.get(os.path.join(shareddir, mp3.name))
-						
-								with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
-									myfile.write(f"{tags.album}")
-									
-							if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
-								tags = TinyTag.get(os.path.join(shareddir, mp3.name))
-						
-								with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
-									myfile.write(f"{tags.title}")
+
+
+								if not os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
+										myfile.write(f"{tags.artist}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
+										myfile.write(f"{tags.album}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
+										myfile.write(f"{tags.title}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".track.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.track.txt'), 'w') as myfile:
+										myfile.write(f"{tags.track}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".genre.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.genre.txt'), 'w') as myfile:
+										myfile.write(f"{tags.genre}")
+
+								if not os.path.exists(os.path.join(datadir, mp3.name+".year.txt")):
+									with open(os.path.join(datadir,mp3.name+'.year.txt'), 'w') as myfile:
+										raw_year = tags.year 
+										clean_year = raw_year[:4] if raw_year else ''
+										myfile.write(f"{clean_year}")
+
+								if not os.path.exists(os.path.join(datadir, mp3.name+".duration.txt")):
+									with open(os.path.join(datadir,mp3.name+'.duration.txt'), 'w') as myfile:
+										myfile.write(f"{str(tags.duration)}")
+
+								if not os.path.exists(os.path.join(datadir, mp3.name+".comment.txt")):
+									with open(os.path.join(datadir,mp3.name+'.comment.txt'), 'w') as myfile:
+										myfile.write(f"{str(tags.comment)}")
+							except:
+								print("fatal error: error saving metadata index for file "+mp3.name)
+								sys.exit(1)
+								
+					unshareddir=os.path.join(basedir, "Unshared")
+					if not os.path.exists(unshareddir):
+						os.makedirs(unshareddir)
+					files = os.scandir(unshareddir)
+					for mp3 in files: 
+						if mp3.name.endswith(".mp3"):
+							try:
+								tags = TinyTag.get(os.path.join(unshareddir, mp3.name))
+
+								if not os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
+										myfile.write(f"{tags.artist}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
+										myfile.write(f"{tags.album}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
+										myfile.write(f"{tags.title}")
+
+								if not os.path.exists(os.path.join(datadir, mp3.name+".track.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.track.txt'), 'w') as myfile:
+										myfile.write(f"{tags.track}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".genre.txt")):
+								
+									with open(os.path.join(datadir,mp3.name+'.genre.txt'), 'w') as myfile:
+										myfile.write(f"{tags.genre}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".year.txt")):
+									with open(os.path.join(datadir,mp3.name+'.year.txt'), 'w') as myfile:
+										raw_year = tags.year 
+										clean_year = raw_year[:4] if raw_year else ''
+										myfile.write(f"{clean_year}")
+
+								if not os.path.exists(os.path.join(datadir, mp3.name+".duration.txt")):
+									with open(os.path.join(datadir,mp3.name+'.duration.txt'), 'w') as myfile:
+										myfile.write(f"{str(tags.duration)}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".comment.txt")):
+									with open(os.path.join(datadir,mp3.name+'.comment.txt'), 'w') as myfile:
+										myfile.write(f"{str(tags.comment)}")
+							except:
+								print("fatal error: error saving metadata index for file "+mp3.name)
+								sys.exit(1)
+										
+
+
+					dldir = os.path.join(basedir, "Downloads")
+					if os.path.isdir(dldir):
+						datadir = os.path.join(basedir, "MetadataDownloads")
+						if not os.path.isdir(datadir):
+							os.makedirs(datadir)
+						files = os.scandir(dldir)
+						for mp3 in files: 
+							if mp3.name.endswith(".mp3"):
+								if not os.path.exists(os.path.join(datadir, mp3.name+".artist.txt")):
+									tags = TinyTag.get(os.path.join(shareddir, mp3.name))
+							
+									with open(os.path.join(datadir,mp3.name+'.artist.txt'), 'w') as myfile:
+										myfile.write(f"{tags.artist}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".album.txt")):
+									tags = TinyTag.get(os.path.join(shareddir, mp3.name))
+							
+									with open(os.path.join(datadir,mp3.name+'.album.txt'), 'w') as myfile:
+										myfile.write(f"{tags.album}")
+										
+								if not os.path.exists(os.path.join(datadir, mp3.name+".title.txt")):
+									tags = TinyTag.get(os.path.join(shareddir, mp3.name))
+							
+									with open(os.path.join(datadir,mp3.name+'.title.txt'), 'w') as myfile:
+										myfile.write(f"{tags.title}")
 							
 						
 									
@@ -2670,16 +2677,18 @@ class WebRequestHandler(BaseHTTPRequestHandler):
 									year = "1970"
 								if track == '' or track == 'None':
 									track="0"
-								dt = int(datetime(int(year), 1, 1, 0, 0).timestamp())
+								dt = int(datetime(int(year), 4, 1, 0, 0).timestamp())
 								
 								if (query!=''):
 									pod = pod + """<podcast:episode>"""+str(int(track))+"""</podcast:episode>"""
 								
 								
-								pod = pod + """<pubDate>"""+formatdate(dt)+""""</pubdate>"""
+								pod = pod + """<pubDate>"""+formatdate(dt)+"""</pubDate>"""
 								if len(comment)>125:
 									commentshort = comment[0-125]+" …"	
-								pod = pod + """<podcast:license><![CDATA["""+commentshort+""""]]></podcast:licence>"""	
+								else:
+									commentshort = comment
+								pod = pod + """<podcast:license><![CDATA["""+commentshort+""""]]></podcast:license>"""	
 								pod = pod + """<description><![CDATA["""+comment+" "+genre+"""" ]]></description>"""
 								
 								#if os.path.exists(os.path.join(shareddir, file)):
